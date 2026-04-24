@@ -1,0 +1,7432 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "prdb.PublicApi | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5080/"
+    }
+  ],
+  "paths": {
+    "/wanted-videos/{videoId}": {
+      "put": {
+        "tags": [
+          "UpdateWantedVideo"
+        ],
+        "summary": "Update a wanted video",
+        "description": "Updates the fulfilment fields of a wanted video entry for the currently authenticated user. Set IsFulfilled to true to mark as fulfilled, or false to reset it.",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWantedVideoRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWantedVideoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateWantedVideoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RemoveWantedVideo"
+        ],
+        "summary": "Remove a wanted video",
+        "description": "Removes the specified video from the wanted list of the currently authenticated user. Returns 404 if the video was not on the user's wanted list. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AddWantedVideo"
+        ],
+        "summary": "Add a wanted video",
+        "description": "Adds the specified video to the wanted list for the currently authenticated user. Returns 204 if added or already on the wanted list. Returns 404 if the video does not exist. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wanted-videos": {
+      "get": {
+        "tags": [
+          "ListWantedVideos"
+        ],
+        "summary": "List wanted videos",
+        "description": "Returns a paged, sortable list of wanted videos for the currently authenticated user. Supports filtering by fulfilment status, site, actor, search term, and recency. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "IsFulfilled",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ActorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "AddedInLastDays",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListWantedVideosResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wanted-videos/changes": {
+      "get": {
+        "tags": [
+          "GetWantedVideoChanges"
+        ],
+        "summary": "Get incremental wanted video changes",
+        "description": "Returns a seek-paged delta feed of wanted video rows for the currently authenticated user ordered by updatedAtUtc ascending, then videoId ascending. Includes created, updated, and soft-deleted rows as full payloads. Use since and the returned nextCursor to continue incrementally. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWantedVideoChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wanted-videos/batch": {
+      "post": {
+        "tags": [
+          "AddWantedVideosBatch"
+        ],
+        "summary": "Batch add wanted videos",
+        "description": "Adds up to 50 videos to the wanted list for the currently authenticated user in a single request. Videos already on the wanted list are silently skipped. Unknown video IDs are silently omitted. Returns counts of added, already-existed, and not-found entries. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWantedVideosBatchRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWantedVideosBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddWantedVideosBatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video-user-images": {
+      "post": {
+        "tags": [
+          "SubmitVideoUserImage"
+        ],
+        "summary": "Submit a video user image",
+        "description": "Uploads a JPEG preview image to BunnyCDN, optionally linked to an existing video. When videoId is omitted, images are grouped by basedOnFileWithOsHash. A paired WebVTT file is required when PreviewImageType is SpriteSheet. Creates the VideoUserImage row and initial moderation state through shared moderation orchestration. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  },
+                  "VttFile": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  },
+                  "VideoId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "BasedOnFileWithOsHash": {
+                    "pattern": "^[0-9A-Fa-f]{16}$",
+                    "type": "string"
+                  },
+                  "PreviewImageType": {
+                    "pattern": "^(?i)(Single|SpriteSheet)$",
+                    "type": "string"
+                  },
+                  "DisplayOrder": {
+                    "maximum": 2147483647,
+                    "minimum": 0,
+                    "pattern": "^-?(?:0|[1-9]\\d*)$",
+                    "type": [
+                      "integer",
+                      "string"
+                    ],
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitVideoUserImageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/video-user-images/{videoUserImageId}/report": {
+      "post": {
+        "tags": [
+          "ReportVideoUserImage"
+        ],
+        "summary": "Report a video user image",
+        "description": "Creates a moderation report for a video user image and returns the updated moderation target state. Duplicate reports by the same user return 409. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "videoUserImageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportVideoUserImageRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportVideoUserImageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportVideoUserImageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{videoId}/user-images": {
+      "get": {
+        "tags": [
+          "ListVideoUserImagesByVideoId"
+        ],
+        "summary": "List video user images for a video",
+        "description": "Returns all publicly visible user-submitted preview images for the requested video ordered by displayOrder, createdAtUtc, and id. Hidden, denied, and soft-deleted rows are excluded. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoUserImageDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video-user-images/by-os-hash/{basedOnFileWithOsHash}": {
+      "get": {
+        "tags": [
+          "ListVideoUserImagesByOsHash"
+        ],
+        "summary": "List video user images by OS hash",
+        "description": "Returns all publicly visible unlinked user-submitted preview images for the requested 16-character OS hash ordered by displayOrder, createdAtUtc, and id. Linked, hidden, denied, and soft-deleted rows are excluded. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "basedOnFileWithOsHash",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoUserImageDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video-user-images/{id}": {
+      "get": {
+        "tags": [
+          "GetVideoUserImageById"
+        ],
+        "summary": "Get a video user image by ID",
+        "description": "Returns a single publicly visible video user image. Hidden, denied, and soft-deleted rows are not returned. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoUserImageDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video-user-images/changes": {
+      "get": {
+        "tags": [
+          "GetVideoUserImageChanges"
+        ],
+        "summary": "Get incremental video user image changes",
+        "description": "Returns a seek-paged current-state delta feed of video user image rows ordered by updatedAtUtc ascending, then id ascending. Includes created, updated, soft-deleted, and moderation-visibility updates as the current row payload. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetVideoUserImageChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos": {
+      "get": {
+        "tags": [
+          "ListVideos"
+        ],
+        "summary": "List videos",
+        "description": "Returns a paged list of videos. Supports filtering by site ID and searching by video title or site title. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ActorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListVideosResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/batch": {
+      "post": {
+        "tags": [
+          "GetVideosByIds"
+        ],
+        "summary": "Get videos by IDs",
+        "description": "Returns full details for up to 50 videos by their IDs. IDs that do not exist are silently omitted from the response. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetVideosByIdsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetVideosByIdsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetVideosByIdsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoDetailDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{id}": {
+      "get": {
+        "tags": [
+          "GetVideoById"
+        ],
+        "summary": "Get video by ID",
+        "description": "Returns full details for a single video, including site, network, images, alternative titles, and actors with their images. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoDetailDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/filehashes/unlinked": {
+      "get": {
+        "tags": [
+          "ListUnlinkedVideoFilehashes"
+        ],
+        "summary": "Get unlinked video filehash entries",
+        "description": "Returns a paged list of active filehash entries that are not linked to any video. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(createdAtUtc|updatedAtUtc|submissionCount|filesize)$",
+              "enum": [
+                "createdAtUtc",
+                "updatedAtUtc",
+                "submissionCount",
+                "filesize"
+              ],
+              "type": "string",
+              "description": "Allowed values: createdAtUtc, updatedAtUtc, submissionCount, filesize."
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnlinkedVideoFilehashesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/filehashes/lookup": {
+      "post": {
+        "tags": [
+          "LookupVideoFilehashes"
+        ],
+        "summary": "Lookup video filehash entries",
+        "description": "Returns a flat list of active filehash entries matching any supplied IDs, video IDs, hashes, filenames, or file sizes. Results can include unlinked rows whose videoId is null. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupVideoFilehashesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupVideoFilehashesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupVideoFilehashesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/filehashes/latest": {
+      "get": {
+        "tags": [
+          "LatestVideoFilehashes"
+        ],
+        "summary": "Get latest video filehash entries",
+        "description": "Returns a paged list of active video filehash entries, including rows linked to videos and rows whose videoId is null. Supports up to 5000 rows per request, sorting by createdAtUtc, updatedAtUtc, submissionCount, or filesize, and filtering by video ID, site ID, verification state, and inclusive created/updated date ranges. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 5000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(createdAtUtc|updatedAtUtc|submissionCount|filesize)$",
+              "enum": [
+                "createdAtUtc",
+                "updatedAtUtc",
+                "submissionCount",
+                "filesize"
+              ],
+              "type": "string",
+              "description": "Allowed values: createdAtUtc, updatedAtUtc, submissionCount, filesize."
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "VideoId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CreatedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "CreatedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "UpdatedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "UpdatedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestVideoFilehashesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/filehashes/batch": {
+      "post": {
+        "tags": [
+          "GetVideoFilehashesByVideoIds"
+        ],
+        "summary": "Get video filehashes by video IDs",
+        "description": "Returns all filehash entries for up to 100 requested video IDs grouped by video ID. Existing videos are included even when they have no filehashes; unknown video IDs are returned separately. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetVideoFilehashesByVideoIdsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetVideoFilehashesByVideoIdsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetVideoFilehashesByVideoIdsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{id}/filehashes": {
+      "get": {
+        "tags": [
+          "GetVideoFilehashesByVideoId"
+        ],
+        "summary": "Get video filehashes by video ID",
+        "description": "Returns all filehash entries for a single video ordered by newest first. Returns 404 when the video does not exist. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VideoFilehashDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/filehashes/changes": {
+      "get": {
+        "tags": [
+          "GetVideoFilehashChanges"
+        ],
+        "summary": "Get incremental video filehash changes",
+        "description": "Returns a seek-paged delta feed of video filehash rows ordered by updatedAtUtc ascending, then id ascending. Includes created, updated, and soft-deleted rows as full payloads. Use since and the returned nextCursor to continue incrementally. Supports optional video ID and site ID filters. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "VideoId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetVideoFilehashChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites": {
+      "get": {
+        "tags": [
+          "ListSites"
+        ],
+        "summary": "List sites",
+        "description": "Returns a paged list of sites ordered by title ascending. Supports filtering by search term matched against site title. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListSitesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit": {
+      "get": {
+        "tags": [
+          "GetRateLimit"
+        ],
+        "summary": "Get rate limit status",
+        "description": "Returns the current rate limit counter for the authenticated user, including requests used, remaining, and seconds until the oldest request expires from the sliding window.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRateLimitResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predb/search-by-video": {
+      "get": {
+        "tags": [
+          "SearchPreDbByVideo"
+        ],
+        "summary": "Search PreDb entries grouped by video",
+        "description": "Searches canonical PreDb titles and returns matching linked PreDb entries grouped by video. 'q' (min 3 characters) is required unless 'releaseDate' is provided, in which case 'q' is optional. Each group includes video and site details. Capped at 500 video groups, no paging.",
+        "parameters": [
+          {
+            "name": "Q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ReleaseDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPreDbByVideoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predb": {
+      "get": {
+        "tags": [
+          "ListPreDb"
+        ],
+        "summary": "List PreDb entries",
+        "description": "Returns a paged list of PreDb entries. Supports filtering by title or release group search, category, and release date range. Default sort is release date descending. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Category",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(movies|tvshows|adult)$",
+              "enum": [
+                "movies",
+                "tvshows",
+                "adult"
+              ],
+              "type": "string",
+              "description": "Allowed values: movies, tvshows, adult."
+            }
+          },
+          {
+            "name": "ReleaseDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "ReleaseDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(releaseDate|title)$",
+              "enum": [
+                "releaseDate",
+                "title"
+              ],
+              "type": "string",
+              "description": "Allowed values: releaseDate, title."
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPreDbResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/predb/latest": {
+      "get": {
+        "tags": [
+          "LatestPreDb"
+        ],
+        "summary": "Get latest PreDb entries",
+        "description": "Returns a paged list of canonical PreDb entries ordered by creation date descending. Linked video details are included when available; unlinked PreDb entries are also returned. Supports filtering by site ID and creation date range. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SiteId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "CreatedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "CreatedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestPreDbResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/indexer-filehashes/lookup": {
+      "post": {
+        "tags": [
+          "LookupIndexerFilehashes"
+        ],
+        "summary": "Lookup indexer filehash entries",
+        "description": "Returns a flat list of active indexer filehash entries matching any supplied IDs, combined indexer source and indexer ID pairs, hashes, filenames, or file sizes. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupIndexerFilehashesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupIndexerFilehashesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupIndexerFilehashesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/indexer-filehashes/latest": {
+      "get": {
+        "tags": [
+          "LatestIndexerFilehashes"
+        ],
+        "summary": "Get latest indexer filehash entries",
+        "description": "Returns a paged list of active indexer filehash entries. Supports up to 5000 rows per request, sorting by createdAtUtc, updatedAtUtc, submissionCount, or filesize, and filtering by indexer source, indexer ID, verification state, and inclusive created/updated date ranges. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 5000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(createdAtUtc|updatedAtUtc|submissionCount|filesize)$",
+              "enum": [
+                "createdAtUtc",
+                "updatedAtUtc",
+                "submissionCount",
+                "filesize"
+              ],
+              "type": "string",
+              "description": "Allowed values: createdAtUtc, updatedAtUtc, submissionCount, filesize."
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "IndexerSource",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(DrunkenSlug|NzbFinder)$",
+              "enum": [
+                "DrunkenSlug",
+                "NzbFinder"
+              ],
+              "type": "string",
+              "description": "Allowed values: DrunkenSlug, NzbFinder."
+            }
+          },
+          {
+            "name": "IndexerId",
+            "in": "query",
+            "schema": {
+              "maxLength": 255,
+              "type": "string"
+            }
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "CreatedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "CreatedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "UpdatedFrom",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "UpdatedTo",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestIndexerFilehashesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/indexer-filehashes/changes": {
+      "get": {
+        "tags": [
+          "GetIndexerFilehashChanges"
+        ],
+        "summary": "Get incremental indexer filehash changes",
+        "description": "Returns a seek-paged delta feed of indexer filehash rows ordered by updatedAtUtc ascending, then id ascending. Includes created, updated, and soft-deleted rows as full payloads. Use since and the returned nextCursor to continue incrementally. Supports optional indexer source and indexer ID filters. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "IndexerSource",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(DrunkenSlug|NzbFinder)$",
+              "enum": [
+                "DrunkenSlug",
+                "NzbFinder"
+              ],
+              "type": "string",
+              "description": "Allowed values: DrunkenSlug, NzbFinder."
+            }
+          },
+          {
+            "name": "IndexerId",
+            "in": "query",
+            "schema": {
+              "maxLength": 255,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetIndexerFilehashChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "GetHealth"
+        ],
+        "summary": "Health check",
+        "description": "Returns the current API status and server timestamp. No authentication required.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-sites/{siteId}": {
+      "delete": {
+        "tags": [
+          "RemoveFavoriteSite"
+        ],
+        "summary": "Remove a favorite site",
+        "description": "Unmarks the specified site as a favourite for the currently authenticated user. Returns 404 if the site was not in the user's favourites. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AddFavoriteSite"
+        ],
+        "summary": "Add a favorite site",
+        "description": "Marks the specified site as a favourite for the currently authenticated user. Returns 204 if added or already a favourite. Returns 404 if the site does not exist. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-sites": {
+      "get": {
+        "tags": [
+          "ListFavoriteSites"
+        ],
+        "summary": "List favorite sites",
+        "description": "Returns a paged, sortable list of sites the currently authenticated user has favorited. Supports filtering by search term. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFavoriteSitesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-sites/changes": {
+      "get": {
+        "tags": [
+          "GetFavoriteSiteChanges"
+        ],
+        "summary": "Get incremental favorite site changes",
+        "description": "Returns a seek-paged delta feed of favorite site rows for the currently authenticated user ordered by updatedAtUtc ascending, then siteId ascending. Includes created, updated, and soft-deleted rows as full payloads. Use since and the returned nextCursor to continue incrementally. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetFavoriteSiteChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-actors/{actorId}": {
+      "delete": {
+        "tags": [
+          "RemoveFavoriteActor"
+        ],
+        "summary": "Remove a favorite actor",
+        "description": "Unmarks the specified actor as a favourite for the currently authenticated user. Returns 404 if the actor was not in the user's favourites. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "actorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AddFavoriteActor"
+        ],
+        "summary": "Add a favorite actor",
+        "description": "Marks the specified actor as a favourite for the currently authenticated user. Returns 204 if added or already a favourite. Returns 404 if the actor does not exist. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "actorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-actors": {
+      "get": {
+        "tags": [
+          "ListFavoriteActors"
+        ],
+        "summary": "List favorite actors",
+        "description": "Returns a paged, sortable list of actors the currently authenticated user has favorited. Supports filtering by search term. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFavoriteActorsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-actors/changes": {
+      "get": {
+        "tags": [
+          "GetFavoriteActorChanges"
+        ],
+        "summary": "Get incremental favorite actor changes",
+        "description": "Returns a seek-paged delta feed of favorite actor rows for the currently authenticated user ordered by updatedAtUtc ascending, then actorId ascending. Includes created, updated, and soft-deleted rows as full payloads. Use since and the returned nextCursor to continue incrementally. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "SinceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 1000,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetFavoriteActorChangesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/downloaded-from-indexers/{downloadedFromIndexerId}/filenames/{filenameId}": {
+      "put": {
+        "tags": [
+          "UpdateDownloadedFromIndexerFilename"
+        ],
+        "summary": "Update a downloaded-from-indexer filename",
+        "description": "Updates a single filename row for a downloaded-from-indexer entry owned by the currently authenticated user. Returns 409 when the filename would duplicate another filename under the same parent.",
+        "parameters": [
+          {
+            "name": "downloadedFromIndexerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "filenameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDownloadedFromIndexerFilenameRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDownloadedFromIndexerFilenameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadedFromIndexerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DeleteDownloadedFromIndexerFilename"
+        ],
+        "summary": "Delete a downloaded-from-indexer filename",
+        "description": "Hard-deletes a single filename row from a downloaded-from-indexer entry owned by the currently authenticated user. Returns 404 when the parent or filename does not exist.",
+        "parameters": [
+          {
+            "name": "downloadedFromIndexerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "filenameId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/downloaded-from-indexers/{downloadedFromIndexerId}": {
+      "put": {
+        "tags": [
+          "UpdateDownloadedFromIndexer"
+        ],
+        "summary": "Update a downloaded-from-indexer entry",
+        "description": "Updates a downloaded-from-indexer entry for the currently authenticated user. User ID and video ID are immutable. Returns 409 when the parent uniqueness rule would be violated.",
+        "parameters": [
+          {
+            "name": "downloadedFromIndexerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDownloadedFromIndexerRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDownloadedFromIndexerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadedFromIndexerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DeleteDownloadedFromIndexer"
+        ],
+        "summary": "Delete a downloaded-from-indexer entry",
+        "description": "Hard-deletes a downloaded-from-indexer entry for the currently authenticated user. Any child filename rows are deleted with it. Returns 404 when the entry does not exist.",
+        "parameters": [
+          {
+            "name": "downloadedFromIndexerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/downloaded-from-indexers/{downloadedFromIndexerId}/filenames": {
+      "post": {
+        "tags": [
+          "AddDownloadedFromIndexerFilename"
+        ],
+        "summary": "Add a downloaded-from-indexer filename",
+        "description": "Adds a single filename row to a downloaded-from-indexer entry owned by the currently authenticated user. Returns 409 when the filename already exists under the parent entry.",
+        "parameters": [
+          {
+            "name": "downloadedFromIndexerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDownloadedFromIndexerFilenameRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDownloadedFromIndexerFilenameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadedFromIndexerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/downloaded-from-indexers": {
+      "post": {
+        "tags": [
+          "AddDownloadedFromIndexer"
+        ],
+        "summary": "Add a downloaded-from-indexer entry",
+        "description": "Creates a downloaded-from-indexer entry for the currently authenticated user, optionally including filename rows in the same request. The entry may be linked to a wanted video by videoId or left unlinked by passing null. Returns 404 when the referenced wanted video does not exist. Returns 409 when the parent uniqueness rule is violated.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDownloadedFromIndexerRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDownloadedFromIndexerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadedFromIndexerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actors": {
+      "get": {
+        "tags": [
+          "ListActors"
+        ],
+        "summary": "List actors",
+        "description": "Returns a paged list of actors. Supports free-text search by name or alias, and sorting by name or creation date. Default page size is 100, maximum is 500. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "pattern": "^(?i)(asc|desc)$",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "description": "Allowed values: asc, desc."
+            }
+          },
+          {
+            "name": "CreatedAfter",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "CreatedBefore",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListActorsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actors/batch": {
+      "post": {
+        "tags": [
+          "GetActorsByIds"
+        ],
+        "summary": "Get actors by IDs",
+        "description": "Returns full details for up to 50 actors by their IDs. IDs that do not exist are silently omitted from the response. Requires API key authentication.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetActorsByIdsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetActorsByIdsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetActorsByIdsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActorDetailDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actors/{id}": {
+      "get": {
+        "tags": [
+          "GetActorById"
+        ],
+        "summary": "Get actor by ID",
+        "description": "Returns full details for a single actor including all attributes, images, aliases, external links, and bios. Requires API key authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorDetailDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActorAliasDto": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "ActorBioDto": {
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "ActorDetailDto": {
+        "required": [
+          "id",
+          "name",
+          "gender",
+          "genderLabel",
+          "haircolor",
+          "haircolorLabel",
+          "eyecolor",
+          "eyecolorLabel",
+          "breastType",
+          "breastTypeLabel",
+          "nationality",
+          "nationalityLabel",
+          "ethnicity",
+          "ethnicityLabel",
+          "images",
+          "aliases",
+          "links",
+          "bios",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "genderLabel": {
+            "type": "string"
+          },
+          "birthday": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "birthdayType": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "birthdayTypeLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deathday": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "birthplace": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "haircolor": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "haircolorLabel": {
+            "type": "string"
+          },
+          "eyecolor": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "eyecolorLabel": {
+            "type": "string"
+          },
+          "breastType": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "breastTypeLabel": {
+            "type": "string"
+          },
+          "height": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "braSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "braSizeLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "waistSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hipSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "nationality": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "nationalityLabel": {
+            "type": "string"
+          },
+          "ethnicity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ethnicityLabel": {
+            "type": "string"
+          },
+          "careerStart": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "careerEnd": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "tattoos": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "piercings": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActorImageDetailDto"
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActorAliasDto"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActorLinkDto"
+            }
+          },
+          "bios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActorBioDto"
+            }
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ActorGender": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "type": "integer",
+        "description": "Known values: Unknown (0), Female (1), Male (2), Intersex (3), Transmale (4), Transfemale (5), NonBinary (6)."
+      },
+      "ActorImageDetailDto": {
+        "required": [
+          "id",
+          "imageType",
+          "imageTypeLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "imageType": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "imageTypeLabel": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ActorImageType": {
+        "enum": [
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "description": "Known values: Thumbnail (1), Poster (2), Face (3)."
+      },
+      "ActorLinkDto": {
+        "required": [
+          "externalSite",
+          "externalSiteLabel",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "externalSite": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "externalSiteLabel": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "ActorSummaryDto": {
+        "required": [
+          "id",
+          "name",
+          "gender",
+          "genderLabel",
+          "nationality",
+          "nationalityLabel",
+          "ethnicity",
+          "ethnicityLabel"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "genderLabel": {
+            "type": "string"
+          },
+          "nationality": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "nationalityLabel": {
+            "type": "string"
+          },
+          "ethnicity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "ethnicityLabel": {
+            "type": "string"
+          },
+          "birthday": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "profileImageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AddDownloadedFromIndexerFilenameRequest": {
+        "required": [
+          "filename"
+        ],
+        "type": "object",
+        "properties": {
+          "filename": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "filesize": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "osHash": {
+            "pattern": "^[0-9A-Fa-f]{16}$",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pHash": {
+            "pattern": "^[0-9A-Fa-f]{16}$",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AddDownloadedFromIndexerRequest": {
+        "required": [
+          "indexerSource",
+          "indexerId",
+          "downloadIdentifier",
+          "nzbName",
+          "nzbUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "indexerSource": {
+            "$ref": "#/components/schemas/IndexerSlug"
+          },
+          "indexerId": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "downloadIdentifier": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "nzbName": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "nzbUrl": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "filenames": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddDownloadedFromIndexerFilenameRequest"
+            }
+          }
+        }
+      },
+      "AddWantedVideosBatchRequest": {
+        "required": [
+          "videoIds"
+        ],
+        "type": "object",
+        "properties": {
+          "videoIds": {
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AddWantedVideosBatchResponse": {
+        "required": [
+          "added",
+          "alreadyExisted",
+          "notFound"
+        ],
+        "type": "object",
+        "properties": {
+          "added": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "alreadyExisted": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "notFound": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "DownloadedFromIndexerFilenameDto": {
+        "required": [
+          "id",
+          "downloadedFromIndexerId",
+          "filename",
+          "filesize",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "downloadedFromIndexerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "osHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DownloadedFromIndexerResponse": {
+        "required": [
+          "id",
+          "videoId",
+          "indexerSource",
+          "indexerId",
+          "downloadIdentifier",
+          "nzbName",
+          "nzbUrl",
+          "filenames",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "indexerSource": {
+            "$ref": "#/components/schemas/IndexerSlug"
+          },
+          "indexerId": {
+            "type": "string"
+          },
+          "downloadIdentifier": {
+            "type": "string"
+          },
+          "nzbName": {
+            "type": "string"
+          },
+          "nzbUrl": {
+            "type": "string"
+          },
+          "filenames": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DownloadedFromIndexerFilenameDto"
+            }
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FavoriteActorChangeDto": {
+        "required": [
+          "eventType",
+          "favoriteActor"
+        ],
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "favoriteActor": {
+            "$ref": "#/components/schemas/FavoriteActorChangeFavoriteActorDto"
+          }
+        }
+      },
+      "FavoriteActorChangeFavoriteActorDto": {
+        "required": [
+          "id",
+          "name",
+          "gender",
+          "nationality",
+          "ethnicity",
+          "isDeleted",
+          "favoritedAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "nationality": {
+            "type": "string"
+          },
+          "ethnicity": {
+            "type": "string"
+          },
+          "profileImageCdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "favoritedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FavoriteActorChangesCursorDto": {
+        "required": [
+          "updatedAtUtc",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "FavoriteActorSummaryDto": {
+        "required": [
+          "id",
+          "name",
+          "gender",
+          "nationality",
+          "ethnicity",
+          "favoritedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "nationality": {
+            "type": "string"
+          },
+          "ethnicity": {
+            "type": "string"
+          },
+          "profileImageCdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "favoritedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FavoriteSiteChangeDto": {
+        "required": [
+          "eventType",
+          "favoriteSite"
+        ],
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "favoriteSite": {
+            "$ref": "#/components/schemas/FavoriteSiteChangeFavoriteSiteDto"
+          }
+        }
+      },
+      "FavoriteSiteChangeFavoriteSiteDto": {
+        "required": [
+          "id",
+          "title",
+          "url",
+          "isDeleted",
+          "favoritedAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "networkId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "networkTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "favoritedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FavoriteSiteChangesCursorDto": {
+        "required": [
+          "updatedAtUtc",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "FavoriteSiteSummaryDto": {
+        "required": [
+          "id",
+          "title",
+          "url",
+          "favoritedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "networkId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "networkTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "favoritedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FulfillmentApp": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "description": "Known values: Sabnzbd (0), Nzbget (1), Filesystem (2), Other (3)."
+      },
+      "GetActorsByIdsRequest": {
+        "required": [
+          "ids"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "GetFavoriteActorChangesResponse": {
+        "required": [
+          "items",
+          "pageSize",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteActorChangeDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FavoriteActorChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetFavoriteSiteChangesResponse": {
+        "required": [
+          "items",
+          "pageSize",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteSiteChangeDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FavoriteSiteChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetHealthResponse": {
+        "required": [
+          "status",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GetIndexerFilehashChangesResponse": {
+        "required": [
+          "items",
+          "pageSize",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexerFilehashChangeDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IndexerFilehashChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetRateLimitResponse": {
+        "required": [
+          "isEnforced",
+          "hourly",
+          "monthly"
+        ],
+        "type": "object",
+        "properties": {
+          "isEnforced": {
+            "type": "boolean"
+          },
+          "hourly": {
+            "$ref": "#/components/schemas/RateLimitWindowStatus"
+          },
+          "monthly": {
+            "$ref": "#/components/schemas/RateLimitWindowStatus"
+          }
+        }
+      },
+      "GetVideoFilehashChangesResponse": {
+        "required": [
+          "items",
+          "pageSize",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashChangeDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoFilehashChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetVideoFilehashesByVideoIdsRequest": {
+        "required": [
+          "ids"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "GetVideoFilehashesByVideoIdsResponse": {
+        "required": [
+          "items",
+          "notFoundVideoIds"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashesByVideoIdDto"
+            }
+          },
+          "notFoundVideoIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "GetVideosByIdsRequest": {
+        "required": [
+          "ids"
+        ],
+        "type": "object",
+        "properties": {
+          "ids": {
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "GetVideoUserImageChangesResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoUserImageChangeItemDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoUserImageChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "GetWantedVideoChangesResponse": {
+        "required": [
+          "items",
+          "pageSize",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WantedVideoChangeDto"
+            }
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WantedVideoChangesCursorDto"
+              }
+            ]
+          }
+        }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
+      },
+      "IndexerFilehashChangeDto": {
+        "required": [
+          "eventType",
+          "filehash"
+        ],
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "filehash": {
+            "$ref": "#/components/schemas/IndexerFilehashChangeFilehashDto"
+          }
+        }
+      },
+      "IndexerFilehashChangeFilehashDto": {
+        "required": [
+          "id",
+          "indexerSource",
+          "indexerId",
+          "filename",
+          "osHash",
+          "filesize",
+          "submissionCount",
+          "isVerified",
+          "isDeleted",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "indexerSource": {
+            "type": "string"
+          },
+          "indexerId": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "osHash": {
+            "type": "string"
+          },
+          "pHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "submissionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IndexerFilehashChangesCursorDto": {
+        "required": [
+          "updatedAtUtc",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "IndexerFilehashDto": {
+        "required": [
+          "id",
+          "indexerSource",
+          "indexerId",
+          "filename",
+          "osHash",
+          "filesize",
+          "submissionCount",
+          "isVerified",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "indexerSource": {
+            "type": "string"
+          },
+          "indexerId": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "osHash": {
+            "type": "string"
+          },
+          "pHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "submissionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IndexerFilehashLookupKeyDto": {
+        "required": [
+          "indexerSource",
+          "indexerId"
+        ],
+        "type": "object",
+        "properties": {
+          "indexerSource": {
+            "pattern": "^(?i)(DrunkenSlug|NzbFinder)$",
+            "enum": [
+              "DrunkenSlug",
+              "NzbFinder"
+            ],
+            "type": "string",
+            "description": "Allowed values: DrunkenSlug, NzbFinder."
+          },
+          "indexerId": {
+            "maxLength": 255,
+            "type": "string"
+          }
+        }
+      },
+      "IndexerSlug": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "description": "Known values: DrunkenSlug (0), NzbFinder (1)."
+      },
+      "LatestIndexerFilehashesResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexerFilehashDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "LatestPreDbItemDto": {
+        "required": [
+          "id",
+          "title",
+          "createdAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "video": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LatestPreDbVideoDto"
+              }
+            ]
+          }
+        }
+      },
+      "LatestPreDbResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LatestPreDbItemDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "LatestPreDbSiteDto": {
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "LatestPreDbVideoDto": {
+        "required": [
+          "id",
+          "title",
+          "site"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "site": {
+            "$ref": "#/components/schemas/LatestPreDbSiteDto"
+          }
+        }
+      },
+      "LatestVideoFilehashesResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListActorsResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "totalPages",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActorSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPages": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListFavoriteActorsResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "totalPages",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteActorSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPages": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListFavoriteSitesResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "totalPages",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteSiteSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPages": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListPreDbResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreDbSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListSitesResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListVideosResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "ListWantedVideosResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "totalPages",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WantedVideoSummaryDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPages": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "LookupIndexerFilehashesRequest": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "indexerKeys": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexerFilehashLookupKeyDto"
+            }
+          },
+          "osHashes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pHashes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filenames": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filesizes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "LookupIndexerFilehashesResponse": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexerFilehashDto"
+            }
+          }
+        }
+      },
+      "LookupVideoFilehashesRequest": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "videoIds": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "osHashes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pHashes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filenames": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filesizes": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "LookupVideoFilehashesResponse": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashDto"
+            }
+          }
+        }
+      },
+      "Nationality": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190,
+          191,
+          192
+        ],
+        "type": "integer",
+        "description": "Known values: Unknown (0), Afghan (1), Albanian (2), Algerian (3), Andorran (4), Angolan (5), Antiguan (6), Argentine (7), Armenian (8), Australian (9), Austrian (10), Azerbaijani (11), Bahamian (12), Bahraini (13), Bangladeshi (14), Barbadian (15), Belarusian (16), Belgian (17), Belizean (18), Beninese (19), Bhutanese (20), Bolivian (21), Bosnian (22), Botswanan (23), Brazilian (24), British (25), Bruneian (26), Bulgarian (27), Burkinabe (28), Burundian (29), Cambodian (30), Cameroonian (31), Canadian (32), CapeVerdean (33), CentralAfrican (34), Chadian (35), Chilean (36), Chinese (37), Colombian (38), Comorian (39), Congolese (40), CongoleseDRC (41), CostaRican (42), Croatian (43), Cuban (44), Cypriot (45), Czech (46), Danish (47), Djiboutian (48), Dominican (49), Dutch (50), Ecuadorian (51), Egyptian (52), Emirati (53), EquatorialGuinean (54), Eritrean (55), Estonian (56), Ethiopian (57), Fijian (58), Filipino (59), Finnish (60), French (61), Gabonese (62), Gambian (63), Georgian (64), German (65), Ghanaian (66), Greek (67), Grenadian (68), Guatemalan (69), Guinean (70), GuineaBissauan (71), Guyanese (72), Haitian (73), Honduran (74), Hungarian (75), Icelandic (76), Indian (77), Indonesian (78), Iranian (79), Iraqi (80), Irish (81), Israeli (82), Italian (83), Jamaican (84), Japanese (85), Jordanian (86), Kazakhstani (87), Kenyan (88), Kiribatian (89), Kosovar (90), Kuwaiti (91), Kyrgyz (92), Laotian (93), Latvian (94), Lebanese (95), Liberian (96), Libyan (97), Liechtensteiner (98), Lithuanian (99), Luxembourgish (100), Malagasy (101), Malawian (102), Malaysian (103), Maldivian (104), Malian (105), Maltese (106), Marshallese (107), Mauritanian (108), Mauritian (109), Mexican (110), Micronesian (111), Moldovan (112), Monegasque (113), Mongolian (114), Montenegrin (115), Moroccan (116), Mozambican (117), Burmese (118), Namibian (119), Nauruan (120), Nepali (121), NewZealander (122), Nicaraguan (123), Nigerian (124), Nigerien (125), NorthKorean (126), Norwegian (127), Omani (128), Pakistani (129), Palauan (130), Palestinian (131), Panamanian (132), PapuaNewGuinean (133), Paraguayan (134), Peruvian (135), Polish (136), Portuguese (137), Qatari (138), Romanian (139), Russian (140), Rwandan (141), SaintLucian (142), Salvadoran (143), Sammarinese (144), Samoan (145), SaoTomean (146), Saudi (147), Scottish (148), Senegalese (149), Serbian (150), Seychellois (151), SierraLeonean (152), Singaporean (153), Slovak (154), Slovenian (155), SolomonIslander (156), Somali (157), SouthAfrican (158), SouthKorean (159), SouthSudanese (160), Spanish (161), SriLankan (162), Sudanese (163), Surinamese (164), Swazi (165), Swedish (166), Swiss (167), Syrian (168), Taiwanese (169), Tajik (170), Tanzanian (171), Thai (172), Timorese (173), Togolese (174), Tongan (175), Trinidadian (176), Tunisian (177), Turkish (178), Turkmen (179), Tuvaluan (180), Ugandan (181), Ukrainian (182), Uruguayan (183), Uzbek (184), Vanuatuan (185), Venezuelan (186), Vietnamese (187), Vincentian (188), Welsh (189), Yemeni (190), Zambian (191), Zimbabwean (192)."
+      },
+      "PreDbItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "PreDbSummaryDto": {
+        "required": [
+          "id",
+          "title",
+          "releaseDate",
+          "releaseGroup",
+          "category"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "releaseGroup": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PreDbVideoGroupDto": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoTitle": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "siteTitle": {
+            "type": "string"
+          },
+          "predbs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreDbItemDto"
+            }
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RateLimitWindowStatus": {
+        "required": [
+          "limit",
+          "used",
+          "remaining",
+          "resetsInSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "limit": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "used": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "remaining": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "resetsInSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ReportVideoUserImageRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "pattern": "^(?i)(NotRelatedToVideo|SpamOrPromotional|OffensiveOrProhibited|DuplicateOrLowQuality|MisleadingOrWrongPreview|CopyrightConcern|Other)$",
+            "enum": [
+              "NotRelatedToVideo",
+              "SpamOrPromotional",
+              "OffensiveOrProhibited",
+              "DuplicateOrLowQuality",
+              "MisleadingOrWrongPreview",
+              "CopyrightConcern",
+              "Other"
+            ],
+            "type": "string",
+            "description": "Allowed values: NotRelatedToVideo, SpamOrPromotional, OffensiveOrProhibited, DuplicateOrLowQuality, MisleadingOrWrongPreview, CopyrightConcern, Other."
+          },
+          "details": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ReportVideoUserImageResponse": {
+        "type": "object",
+        "properties": {
+          "moderationTargetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "weightedReportScore": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SearchPreDbByVideoResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreDbVideoGroupDto"
+            }
+          },
+          "totalGroups": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SiteSummaryDto": {
+        "required": [
+          "id",
+          "title",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "networkId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "networkTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SubmitVideoUserImageResponse": {
+        "type": "object",
+        "properties": {
+          "videoUserImageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "moderationTargetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "moderationStatus": {
+            "type": "string"
+          },
+          "moderationVisibility": {
+            "type": "string"
+          }
+        }
+      },
+      "UnlinkedVideoFilehashesResponse": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize",
+          "sortBy",
+          "sortDirection"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashDto"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDirection": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateDownloadedFromIndexerFilenameRequest": {
+        "required": [
+          "filename"
+        ],
+        "type": "object",
+        "properties": {
+          "filename": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "filesize": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "osHash": {
+            "pattern": "^[0-9A-Fa-f]{16}$",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pHash": {
+            "pattern": "^[0-9A-Fa-f]{16}$",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "UpdateDownloadedFromIndexerRequest": {
+        "required": [
+          "indexerSource",
+          "indexerId",
+          "downloadIdentifier",
+          "nzbName",
+          "nzbUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "indexerSource": {
+            "$ref": "#/components/schemas/IndexerSlug"
+          },
+          "indexerId": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "downloadIdentifier": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "nzbName": {
+            "maxLength": 2000,
+            "type": "string"
+          },
+          "nzbUrl": {
+            "maxLength": 2000,
+            "type": "string"
+          }
+        }
+      },
+      "UpdateWantedVideoRequest": {
+        "type": "object",
+        "properties": {
+          "isFulfilled": {
+            "type": "boolean"
+          },
+          "fulfilledAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledInQuality": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoQuality"
+              }
+            ]
+          },
+          "fulfillmentExternalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fulfillmentByApp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FulfillmentApp"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateWantedVideoResponse": {
+        "required": [
+          "videoId",
+          "isFulfilled",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "isFulfilled": {
+            "type": "boolean"
+          },
+          "fulfilledAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledInQuality": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoQuality"
+              }
+            ]
+          },
+          "fulfillmentExternalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fulfillmentByApp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FulfillmentApp"
+              }
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "VideoDetailActorDto": {
+        "required": [
+          "id",
+          "name",
+          "gender",
+          "nationality",
+          "images"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "$ref": "#/components/schemas/ActorGender"
+          },
+          "birthday": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoDetailActorImageDto"
+            }
+          }
+        }
+      },
+      "VideoDetailActorImageDto": {
+        "required": [
+          "id",
+          "imageType"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "imageType": {
+            "$ref": "#/components/schemas/ActorImageType"
+          }
+        }
+      },
+      "VideoDetailDto": {
+        "required": [
+          "id",
+          "title",
+          "createdAtUtc",
+          "updatedAtUtc",
+          "site",
+          "images",
+          "preNames",
+          "actors"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "site": {
+            "$ref": "#/components/schemas/VideoDetailSiteDto"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoDetailImageDto"
+            }
+          },
+          "preNames": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoDetailPreNameDto"
+            }
+          },
+          "actors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoDetailActorDto"
+            }
+          }
+        }
+      },
+      "VideoDetailImageDto": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "VideoDetailNetworkDto": {
+        "required": [
+          "id",
+          "title",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "VideoDetailPreNameDto": {
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "VideoDetailSiteDto": {
+        "required": [
+          "id",
+          "title",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "network": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoDetailNetworkDto"
+              }
+            ]
+          }
+        }
+      },
+      "VideoFilehashChangeDto": {
+        "required": [
+          "eventType",
+          "filehash"
+        ],
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "filehash": {
+            "$ref": "#/components/schemas/VideoFilehashChangeFilehashDto"
+          }
+        }
+      },
+      "VideoFilehashChangeFilehashDto": {
+        "required": [
+          "id",
+          "videoId",
+          "filename",
+          "filesize",
+          "submissionCount",
+          "isVerified",
+          "isDeleted",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "osHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "submissionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "VideoFilehashChangesCursorDto": {
+        "required": [
+          "updatedAtUtc",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "VideoFilehashDto": {
+        "required": [
+          "id",
+          "videoId",
+          "filename",
+          "filesize",
+          "submissionCount",
+          "isVerified",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "osHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pHash": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "submissionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "VideoFilehashesByVideoIdDto": {
+        "required": [
+          "videoId",
+          "filehashes"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filehashes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoFilehashDto"
+            }
+          }
+        }
+      },
+      "VideoQuality": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "description": "Known values: P720 (0), P1080 (1), P2160 (2)."
+      },
+      "VideoSummaryActorDto": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "VideoSummaryDto": {
+        "required": [
+          "id",
+          "title",
+          "siteId",
+          "siteTitle",
+          "actors"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "siteTitle": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "actors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoSummaryActorDto"
+            }
+          }
+        }
+      },
+      "VideoUserImageChangeItemDto": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "videoUserImage": {
+            "$ref": "#/components/schemas/VideoUserImageDto"
+          }
+        }
+      },
+      "VideoUserImageChangesCursorDto": {
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "VideoUserImageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "basedOnFileWithOsHash": {
+            "type": "string"
+          },
+          "previewImageType": {
+            "type": "string"
+          },
+          "filesize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "width": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "height": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "displayOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "url": {
+            "type": "string"
+          },
+          "hasVtt": {
+            "type": "boolean"
+          },
+          "vttUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "spriteTileCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "spriteTileWidth": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "spriteTileHeight": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "spriteColumns": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "spriteRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "moderationStatus": {
+            "type": "string"
+          },
+          "moderationVisibility": {
+            "type": "string"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WantedVideoChangeDto": {
+        "required": [
+          "eventType",
+          "wantedVideo"
+        ],
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string"
+          },
+          "wantedVideo": {
+            "$ref": "#/components/schemas/WantedVideoChangeWantedVideoDto"
+          }
+        }
+      },
+      "WantedVideoChangesCursorDto": {
+        "required": [
+          "updatedAtUtc",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "WantedVideoChangeWantedVideoDto": {
+        "required": [
+          "videoId",
+          "videoTitle",
+          "siteTitle",
+          "isDeleted",
+          "isFulfilled",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoTitle": {
+            "type": "string"
+          },
+          "siteTitle": {
+            "type": "string"
+          },
+          "videoReleaseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "videoCreatedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "imageCdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "isFulfilled": {
+            "type": "boolean"
+          },
+          "fulfilledAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledInQuality": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoQuality"
+              }
+            ]
+          },
+          "fulfillmentExternalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fulfillmentByApp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FulfillmentApp"
+              }
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WantedVideoSummaryDto": {
+        "required": [
+          "videoId",
+          "videoTitle",
+          "siteTitle",
+          "isFulfilled",
+          "createdAtUtc",
+          "updatedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "videoTitle": {
+            "type": "string"
+          },
+          "siteTitle": {
+            "type": "string"
+          },
+          "videoReleaseDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "videoCreatedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "imageCdnPath": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isFulfilled": {
+            "type": "boolean"
+          },
+          "fulfilledAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledInQuality": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VideoQuality"
+              }
+            ]
+          },
+          "fulfillmentExternalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fulfillmentByApp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FulfillmentApp"
+              }
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "UpdateWantedVideo"
+    },
+    {
+      "name": "RemoveWantedVideo"
+    },
+    {
+      "name": "AddWantedVideo"
+    },
+    {
+      "name": "ListWantedVideos"
+    },
+    {
+      "name": "GetWantedVideoChanges"
+    },
+    {
+      "name": "AddWantedVideosBatch"
+    },
+    {
+      "name": "SubmitVideoUserImage"
+    },
+    {
+      "name": "ReportVideoUserImage"
+    },
+    {
+      "name": "ListVideoUserImagesByVideoId"
+    },
+    {
+      "name": "ListVideoUserImagesByOsHash"
+    },
+    {
+      "name": "GetVideoUserImageById"
+    },
+    {
+      "name": "GetVideoUserImageChanges"
+    },
+    {
+      "name": "ListVideos"
+    },
+    {
+      "name": "GetVideosByIds"
+    },
+    {
+      "name": "GetVideoById"
+    },
+    {
+      "name": "ListUnlinkedVideoFilehashes"
+    },
+    {
+      "name": "LookupVideoFilehashes"
+    },
+    {
+      "name": "LatestVideoFilehashes"
+    },
+    {
+      "name": "GetVideoFilehashesByVideoIds"
+    },
+    {
+      "name": "GetVideoFilehashesByVideoId"
+    },
+    {
+      "name": "GetVideoFilehashChanges"
+    },
+    {
+      "name": "ListSites"
+    },
+    {
+      "name": "GetRateLimit"
+    },
+    {
+      "name": "SearchPreDbByVideo"
+    },
+    {
+      "name": "ListPreDb"
+    },
+    {
+      "name": "LatestPreDb"
+    },
+    {
+      "name": "LookupIndexerFilehashes"
+    },
+    {
+      "name": "LatestIndexerFilehashes"
+    },
+    {
+      "name": "GetIndexerFilehashChanges"
+    },
+    {
+      "name": "GetHealth"
+    },
+    {
+      "name": "RemoveFavoriteSite"
+    },
+    {
+      "name": "AddFavoriteSite"
+    },
+    {
+      "name": "ListFavoriteSites"
+    },
+    {
+      "name": "GetFavoriteSiteChanges"
+    },
+    {
+      "name": "RemoveFavoriteActor"
+    },
+    {
+      "name": "AddFavoriteActor"
+    },
+    {
+      "name": "ListFavoriteActors"
+    },
+    {
+      "name": "GetFavoriteActorChanges"
+    },
+    {
+      "name": "UpdateDownloadedFromIndexerFilename"
+    },
+    {
+      "name": "DeleteDownloadedFromIndexerFilename"
+    },
+    {
+      "name": "UpdateDownloadedFromIndexer"
+    },
+    {
+      "name": "DeleteDownloadedFromIndexer"
+    },
+    {
+      "name": "AddDownloadedFromIndexerFilename"
+    },
+    {
+      "name": "AddDownloadedFromIndexer"
+    },
+    {
+      "name": "ListActors"
+    },
+    {
+      "name": "GetActorsByIds"
+    },
+    {
+      "name": "GetActorById"
+    }
+  ]
+}

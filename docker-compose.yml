@@ -1,0 +1,12 @@
+services:
+  porganizer:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data   # SQLite database persistence
+      - ./logs:/app/logs   # Serilog file sink
+    environment:
+      - DB_PATH=/app/data/app.db
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: unless-stopped

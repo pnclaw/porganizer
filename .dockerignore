@@ -1,0 +1,10 @@
+**/node_modules
+**/bin
+**/obj
+**/*.user
+**/.vs
+**/dist
+**/.git
+**/.gitignore
+**/data
+**/logs

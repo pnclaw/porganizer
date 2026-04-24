@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/porganizer.Api/porganizer.Api.csproj" />
+  <Project Path="src/porganizer.Database/porganizer.Database.csproj" />
+  <Project Path="tests/porganizer.Api.Tests/porganizer.Api.Tests.csproj" />
+</Solution>
