@@ -23,6 +23,7 @@ public static class NewznabParser
 
             attrs.TryGetValue("size", out var sizeStr);
             attrs.TryGetValue("category", out var categoryStr);
+            attrs.TryGetValue("guid", out var attrGuid);
 
             var pubDateStr = (string?)item.Element("pubDate");
             DateTime? pubDate = null;
@@ -34,7 +35,7 @@ public static class NewznabParser
             results.Add(new ParsedIndexerRow
             {
                 Title = (string?)item.Element("title") ?? string.Empty,
-                NzbId = ExtractId((string?)item.Element("guid") ?? string.Empty),
+                NzbId = !string.IsNullOrEmpty(attrGuid) ? attrGuid : ExtractId((string?)item.Element("guid") ?? string.Empty),
                 NzbUrl = (string?)item.Element("link") ?? string.Empty,
                 NzbSize = long.TryParse(sizeStr, out var size) ? size : 0,
                 NzbPublishedAt = pubDate,
