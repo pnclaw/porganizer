@@ -3,6 +3,14 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/newznab-attr-guid — 2026-05-08
+
+### Done
+- Fixed NZB ID extraction for indexers (e.g. nzbporn) that supply the canonical ID via `newznab:attr name="guid"` rather than in the `<guid>` element URL. The parser now reads the attr value directly as the NzbId, avoiding brittle URL parsing. Indexers like DrunkenSlug that omit the attr fall back to the existing path-segment extraction unchanged.
+
+### Dead Ends
+- *(none)*
+
 ## feature/ember-tidal-grove — 2026-05-08
 
 ### Done
