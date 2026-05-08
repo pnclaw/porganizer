@@ -46,13 +46,21 @@ public static class NewznabParser
         return results;
     }
 
-    // If the guid is a URL (e.g. https://site/details/f7291d3a-...), return the last path segment.
-    // Otherwise return the value as-is (some indexers already return a plain ID).
+    // If the guid is a URL, prefer the "id" query parameter (e.g. ?id=abc123) since some
+    // indexers put the NZB ID there rather than in the path. Fall back to the last path segment
+    // for path-based URLs (e.g. https://site/details/f7291d3a-...).
+    // If the guid is not a URL at all, return it as-is.
     private static string ExtractId(string guid)
     {
-        if (Uri.TryCreate(guid, UriKind.Absolute, out var uri))
-            return uri.Segments[^1].Trim('/');
-        return guid;
+        if (!Uri.TryCreate(guid, UriKind.Absolute, out var uri))
+            return guid;
+
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var id = query["id"] ?? query["ID"] ?? query["nzbid"] ?? query["nzbID"];
+        if (!string.IsNullOrEmpty(id))
+            return id;
+
+        return uri.Segments[^1].Trim('/');
     }
 }
 
