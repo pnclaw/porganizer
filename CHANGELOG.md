@@ -3,6 +3,14 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/ember-tidal-grove — 2026-05-08
+
+### Done
+- Fixed indexer backfill saving only one row for indexers whose Newznab guid uses a query-string ID (e.g. `?id=abc123`). `ExtractId` was returning the last URL path segment for all items, collapsing every NZB to the same ID and discarding all but the first. It now checks for `id`, `ID`, `nzbid`, and `nzbID` query parameters before falling back to the path segment.
+
+### Dead Ends
+- *(none)*
+
 ## feature/auto-cleanup-improvements — 2026-04-23
 
 ### Done
