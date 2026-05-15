@@ -164,6 +164,7 @@
             <v-card-text class="py-2 px-3">
               <div class="d-flex align-start ga-2">
                 <div class="flex-grow-1 min-width-0">
+                  <div class="text-caption text-medium-emphasis mb-1">{{ match.indexerTitle }}</div>
                   <div class="text-body-2 mb-1" style="word-break: break-word">{{ match.title }}</div>
                   <div class="d-flex align-center flex-wrap ga-1">
                     <span class="text-caption text-medium-emphasis">{{ formatSize(match.nzbSize) }}</span>

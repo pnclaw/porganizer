@@ -3,6 +3,26 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/transfer-downloaded-files-after-failure — 2026-05-15
+
+### Done
+- Added a new Rescue feature (`POST /api/rescue/preview` and `POST /api/rescue/execute`) that scans a user-supplied folder, matches each direct subfolder name against known indexer rows using the same title-normalisation logic as the existing pipeline, and moves matched files to the configured target library folder.
+- Execute creates or reuses a `DownloadLog` record, populates `DownloadLogFile` entries, delegates the actual file move to the existing `DownloadFileMoveService`, and marks any linked wanted video as fulfilled.
+- Added a dedicated Rescue page in the frontend (folder input → Preview → confirm → Execute with per-item result log) accessible via the Admin nav group.
+- Added 4 integration tests covering: bad-folder 400 on preview, bad-folder 400 on execute, matched subfolder returns correct video/site, unmatched subfolder returns unmatched item.
+
+### Dead Ends
+- *(none)*
+
+## feature/video-detail-view — 2026-05-15
+
+### Done
+- Added `IndexerTitle` field to the video detail indexer-matches response so the UI can show which indexer each match came from.
+- Added integration tests for `GET /api/prdb-videos/{id}/indexer-matches`: happy-path verifying the indexer title is returned, and a 404 sad-path for an unknown video ID.
+
+### Dead Ends
+- *(none)*
+
 ## feature/newznab-attr-guid — 2026-05-08
 
 ### Done

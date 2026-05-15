@@ -7,6 +7,7 @@ public class VideoIndexerMatchResponse
 {
     public Guid IndexerRowId { get; set; }
     public Guid IndexerId { get; set; }
+    public string IndexerTitle { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string NzbUrl { get; set; } = string.Empty;
     public long NzbSize { get; set; }

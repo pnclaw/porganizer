@@ -276,6 +276,7 @@ export interface PrdbVideoDetail {
 export interface VideoIndexerMatch {
   indexerRowId: string
   indexerId: string
+  indexerTitle: string
   title: string
   nzbUrl: string
   nzbSize: number
@@ -610,6 +611,36 @@ export interface CleanupDeleteResult {
   freedBytes: number
 }
 
+export interface RescuePreviewItem {
+  sourcePath: string
+  name: string
+  isMatched: boolean
+  videoTitle: string | null
+  siteTitle: string | null
+  destinationFolder: string | null
+  videoFileCount: number
+}
+
+export interface RescuePreviewResponse {
+  items: RescuePreviewItem[]
+}
+
+export interface RescueLogEntry {
+  level: 'info' | 'warning' | 'error'
+  message: string
+}
+
+export interface RescueExecuteItem {
+  sourcePath: string
+  name: string
+  isMatched: boolean
+  log: RescueLogEntry[]
+}
+
+export interface RescueExecuteResponse {
+  items: RescueExecuteItem[]
+}
+
 export interface AuthStatus {
   required: boolean
   authenticated: boolean
@@ -895,6 +926,12 @@ export const api = {
       request<CleanupPreviewResult>('/library-cleanup/uploaded-files'),
     deleteUploaded: () =>
       request<CleanupDeleteResult>('/library-cleanup/delete-uploaded-files', { method: 'POST' }),
+  },
+  rescue: {
+    preview: (folder: string) =>
+      request<RescuePreviewResponse>('/rescue/preview', { method: 'POST', body: JSON.stringify({ folder }) }),
+    execute: (folder: string) =>
+      request<RescueExecuteResponse>('/rescue/execute', { method: 'POST', body: JSON.stringify({ folder }) }),
   },
   auth: {
     status: () => request<AuthStatus>('/auth/status'),
