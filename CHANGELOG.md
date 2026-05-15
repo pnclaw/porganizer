@@ -3,6 +3,15 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/video-detail-view — 2026-05-15
+
+### Done
+- Added `IndexerTitle` field to the video detail indexer-matches response so the UI can show which indexer each match came from.
+- Added integration tests for `GET /api/prdb-videos/{id}/indexer-matches`: happy-path verifying the indexer title is returned, and a 404 sad-path for an unknown video ID.
+
+### Dead Ends
+- *(none)*
+
 ## feature/newznab-attr-guid — 2026-05-08
 
 ### Done
