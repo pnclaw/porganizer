@@ -21,6 +21,7 @@ import PrdbPreDbView from '../features/prdb/PrdbPreDbView.vue'
 import LibraryView from '../features/library/LibraryView.vue'
 import LibraryVideoDetailView from '../features/library/LibraryVideoDetailView.vue'
 import LibraryFoldersView from '../features/library/LibraryFoldersView.vue'
+import RescueView from '../features/rescue/RescueView.vue'
 import { useAuth } from '../composables/useAuth'
 
 const router = createRouter({
@@ -49,6 +50,7 @@ const router = createRouter({
     { path: '/library', component: LibraryView, meta: { title: 'Library' } },
     { path: '/library/videos/:id', component: LibraryVideoDetailView, meta: { title: 'Library Video' } },
     { path: '/library/folders', component: LibraryFoldersView, meta: { title: 'Library Folders' } },
+    { path: '/rescue', component: RescueView, meta: { title: 'Rescue' } },
   ],
 })
 

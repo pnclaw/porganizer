@@ -68,6 +68,7 @@
             <v-list-item prepend-icon="mdi-chart-box" title="Sync Status" to="/sync-status" rounded="lg" />
             <v-list-item prepend-icon="mdi-text-box-search" title="Logs" to="/admin/logs" rounded="lg" />
             <v-list-item prepend-icon="mdi-database" title="Database" to="/admin/database" rounded="lg" />
+            <v-list-item prepend-icon="mdi-ambulance" title="Rescue" to="/rescue" rounded="lg" />
           </v-list-group>
           <template v-if="authStatus?.required">
             <v-list-item
