@@ -84,6 +84,8 @@ builder.Services.AddSingleton<porganizer.Api.Features.Library.PreviewQueueServic
 builder.Services.AddScoped<porganizer.Api.Features.Library.VideoUserImageUpload.IVideoUserImageUploadService, porganizer.Api.Features.Library.VideoUserImageUpload.VideoUserImageUploadService>();
 builder.Services.AddSingleton<porganizer.Api.Features.Library.VideoUserImageUpload.VideoUserImageUploadQueueService>();
 builder.Services.AddScoped<porganizer.Api.Features.Library.Cleanup.ILibraryCleanupService, porganizer.Api.Features.Library.Cleanup.LibraryCleanupService>();
+builder.Services.AddScoped<porganizer.Api.Features.Rescue.IRescuePreviewService, porganizer.Api.Features.Rescue.RescuePreviewService>();
+builder.Services.AddScoped<porganizer.Api.Features.Rescue.IRescueExecuteService, porganizer.Api.Features.Rescue.RescueExecuteService>();
 builder.Services.AddScoped<porganizer.Api.Features.Database.IDatabaseViewService, porganizer.Api.Features.Database.DatabaseViewService>();
 builder.Services.AddHostedService<porganizer.Api.Background.SyncWorker>();
 builder.Services.AddHostedService<porganizer.Api.Background.QuickSyncWorker>();
