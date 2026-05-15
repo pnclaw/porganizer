@@ -134,6 +134,7 @@ public class PrdbVideosController(AppDbContext db) : ControllerBase
             {
                 m.IndexerRow.Id,
                 m.IndexerRow.IndexerId,
+                IndexerTitle = m.IndexerRow.Indexer.Title,
                 m.IndexerRow.Title,
                 m.IndexerRow.NzbUrl,
                 m.IndexerRow.NzbSize,
@@ -167,6 +168,7 @@ public class PrdbVideosController(AppDbContext db) : ControllerBase
             {
                 IndexerRowId   = r.Id,
                 IndexerId      = r.IndexerId,
+                IndexerTitle   = r.IndexerTitle,
                 Title          = r.Title,
                 NzbUrl         = r.NzbUrl,
                 NzbSize        = r.NzbSize,

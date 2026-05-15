@@ -276,6 +276,7 @@ export interface PrdbVideoDetail {
 export interface VideoIndexerMatch {
   indexerRowId: string
   indexerId: string
+  indexerTitle: string
   title: string
   nzbUrl: string
   nzbSize: number
