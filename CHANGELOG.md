@@ -3,6 +3,15 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/download-move-bug — 2026-05-16
+
+### Done
+- Fixed "Move files" button returning "No files are recorded for this download" when the download completed while porganizer was offline. The manual move endpoint now runs `DownloadLogFileSyncService.SyncAsync` before `DownloadFileMoveService.MoveAsync`, matching the automatic poll-completion flow.
+- Added a regression test that seeds a completed log with a real file on disk but no `DownloadLogFile` records in the DB, verifying the sync step fires and the old error message is absent.
+
+### Dead Ends
+*(none)*
+
 ## bugfix/download-client-port-frontend — 2026-05-16
 
 ### Done

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using porganizer.Database;
 using porganizer.Database.Enums;
@@ -41,6 +42,50 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
         body.Entries.Should().NotBeNull();
     }
 
+    [Fact]
+    public async Task Move_FilesOnDiskButNoDbRecords_SyncsBeforeMoving()
+    {
+        // Regression: a completed download whose DownloadLogFile records were never written
+        // (e.g. porganizer was offline when the download finished) previously returned
+        // "No files are recorded for this download — nothing to move." even though video
+        // files were present on disk. The fix is to run the file sync before the move.
+        var sourceDir = Path.Combine(Path.GetTempPath(), $"porganizer-move-test-src-{Guid.NewGuid():N}");
+        var targetDir = Path.Combine(Path.GetTempPath(), $"porganizer-move-test-dst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(sourceDir);
+        Directory.CreateDirectory(targetDir);
+
+        try
+        {
+            // Place a real video file on disk so the sync service can find it.
+            File.WriteAllText(Path.Combine(sourceDir, "video.mkv"), "fake");
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var settings = await db.AppSettings.OrderBy(s => s.Id).FirstAsync();
+            settings.OrganizeCompletedBySite       = true;
+            settings.CompletedDownloadsTargetFolder = targetDir;
+            await db.SaveChangesAsync();
+
+            // Seed the log with StoragePath but deliberately NO DownloadLogFile records.
+            var id = await SeedLogAsync(DownloadStatus.Completed, filesMovedAtUtc: null, storagePath: sourceDir);
+
+            var response = await _client.PostAsync($"/api/download-logs/{id}/move", null);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var body = await response.Content.ReadFromJsonAsync<MoveBody>();
+            body.Should().NotBeNull();
+
+            // The sync should have run and found the file, so the old "no records" warning must not appear.
+            body!.Entries.Should().NotContain(e => e.Message.Contains("No files are recorded"));
+        }
+        finally
+        {
+            if (Directory.Exists(sourceDir)) Directory.Delete(sourceDir, recursive: true);
+            if (Directory.Exists(targetDir)) Directory.Delete(targetDir, recursive: true);
+        }
+    }
+
     // ── Sad paths ────────────────────────────────────────────────────────────
 
     [Fact]
@@ -73,7 +118,7 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private async Task<Guid> SeedLogAsync(DownloadStatus status, DateTime? filesMovedAtUtc)
+    private async Task<Guid> SeedLogAsync(DownloadStatus status, DateTime? filesMovedAtUtc, string? storagePath = null)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -122,6 +167,7 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
             NzbName          = "Test.Release.1080p",
             NzbUrl           = "https://indexer.test/nzb",
             Status           = status,
+            StoragePath      = storagePath,
             FilesMovedAtUtc  = filesMovedAtUtc,
             CreatedAt        = DateTime.UtcNow,
             UpdatedAt        = DateTime.UtcNow,
