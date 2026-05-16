@@ -2,19 +2,6 @@
 
 ## Download backend reliability
 
-### Make folder mapping path-boundary aware
-
-Folder mapping currently uses raw string prefix checks. A mapping such as `/downloads` can also match
-`/downloads2`, producing invalid source paths for file sync or file move.
-
-**What needs implementing:**
-
-1. Normalize mapped paths before comparison.
-2. Match only exact folder paths or prefixes followed by a directory separator.
-3. Centralize folder-mapping logic so download file sync, download file move, and library queueing use
-   the same implementation.
-4. Add tests for similarly named folders such as `/downloads` and `/downloads2`.
-
 ## Re-sync older unverified filehashes
 
 `PrdbVideoFilehash.IsVerified` can transition from `false` → `true` after the initial sync as more

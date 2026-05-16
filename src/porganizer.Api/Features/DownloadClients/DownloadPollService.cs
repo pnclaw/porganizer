@@ -147,7 +147,7 @@ public class DownloadPollService(
         var storagePaths = completed
             .Select(l => l.StoragePath)
             .Where(p => !string.IsNullOrWhiteSpace(p))
-            .Select(p => ApplyFolderMapping(p!, folderMappings))
+            .Select(p => DownloadFolderMapper.Apply(p!, folderMappings))
             .Distinct()
             .ToList();
 
@@ -162,16 +162,6 @@ public class DownloadPollService(
         }
 
         await db.SaveChangesAsync(ct);
-    }
-
-    private static string ApplyFolderMapping(string path, List<FolderMapping> mappings)
-    {
-        foreach (var mapping in mappings)
-        {
-            if (path.StartsWith(mapping.OriginalFolder, StringComparison.OrdinalIgnoreCase))
-                return mapping.MappedToFolder + path[mapping.OriginalFolder.Length..];
-        }
-        return path;
     }
 
     private static void ApplyResult(DownloadLog log, DownloadPollResult result)
