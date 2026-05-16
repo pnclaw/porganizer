@@ -7,7 +7,9 @@ See [`docs/changelog/`](docs/changelog/) for archived entries.
 
 ### Done
 - Fixed SABnzbd polling for large queues by querying queue and history with the tracked `nzo_id`s instead of relying on the default queue page, preventing deep queued items from being counted as missing and eventually marked Failed.
+- Added durable completion post-processing tracking for download logs. Completed logs whose file sync, move, wanted fulfillment, or library queue work did not finish are now picked up by later poll cycles without re-polling the download client.
 - Added a regression test for a SABnzbd item that is still queued after repeated missed polls, verifying the queue request includes `nzo_ids` and the item is not failed.
+- Added a regression test for a completed log with unfinished post-processing, verifying the recovery pass runs without contacting the download client.
 
 ### Dead Ends
 *(none)*

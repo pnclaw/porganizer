@@ -101,7 +101,53 @@ public sealed class DownloadPollServiceTests : IDisposable
         saved.Status.Should().Be(DownloadStatus.Completed);
         saved.MissedPollCount.Should().Be(0);
         saved.CompletedAt.Should().NotBeNull();
+        saved.CompletionPostProcessedAtUtc.Should().NotBeNull();
         saved.StoragePath.Should().Be("/downloads/nzo-1");
+    }
+
+    [Fact]
+    public async Task PollAsync_WhenCompletedLogPostProcessingIncomplete_RetriesWithoutPollingClient()
+    {
+        var (_, log) = await SeedSabnzbdDownloadAsync("nzo-1", DownloadStatus.Completed, missedPollCount: 0);
+        log.CompletedAt = DateTime.UtcNow.AddMinutes(-5);
+        log.CompletionPostProcessedAtUtc = null;
+        await _db.SaveChangesAsync();
+
+        var service = BuildService(sabnzbdHandler: _ =>
+            throw new InvalidOperationException("Completed recovery should not poll the download client."));
+
+        await service.PollAsync(CancellationToken.None);
+
+        var saved = await _db.DownloadLogs.SingleAsync(l => l.Id == log.Id);
+        saved.Status.Should().Be(DownloadStatus.Completed);
+        saved.CompletionPostProcessedAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task PollAsync_WhenCompletedLogPostProcessingThrows_RetriesOnLaterPoll()
+    {
+        var (_, log) = await SeedSabnzbdDownloadAsync("nzo-1", DownloadStatus.Completed, missedPollCount: 0);
+        log.CompletedAt = DateTime.UtcNow.AddMinutes(-5);
+        log.StoragePath = "\0invalid";
+        log.CompletionPostProcessedAtUtc = null;
+        await _db.SaveChangesAsync();
+
+        var service = BuildService(sabnzbdHandler: _ =>
+            throw new InvalidOperationException("Completed recovery should not poll the download client."));
+
+        await service.Invoking(s => s.PollAsync(CancellationToken.None))
+            .Should().ThrowAsync<ArgumentException>();
+
+        var afterFailure = await _db.DownloadLogs.SingleAsync(l => l.Id == log.Id);
+        afterFailure.CompletionPostProcessedAtUtc.Should().BeNull();
+
+        afterFailure.StoragePath = null;
+        await _db.SaveChangesAsync();
+
+        await service.PollAsync(CancellationToken.None);
+
+        var afterRetry = await _db.DownloadLogs.SingleAsync(l => l.Id == log.Id);
+        afterRetry.CompletionPostProcessedAtUtc.Should().NotBeNull();
     }
 
     [Fact]

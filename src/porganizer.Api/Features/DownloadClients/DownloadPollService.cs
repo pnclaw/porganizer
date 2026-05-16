@@ -28,98 +28,137 @@ public class DownloadPollService(
                 l.ClientItemId != null)
             .ToListAsync(ct);
 
-        if (pendingLogs.Count == 0) return;
-
-        logger.LogDebug("Polling {Count} pending download(s)", pendingLogs.Count);
-
-        var byClient = pendingLogs.GroupBy(l => l.DownloadClientId);
-
-        foreach (var group in byClient)
+        if (pendingLogs.Count > 0)
         {
-            var client = group.First().DownloadClient;
+            logger.LogDebug("Polling {Count} pending download(s)", pendingLogs.Count);
 
-            DownloadPollGroupResult groupResult = client.ClientType switch
+            var byClient = pendingLogs.GroupBy(l => l.DownloadClientId);
+
+            foreach (var group in byClient)
             {
-                ClientType.Sabnzbd => await sabnzbdPoller.PollAsync(client, group, ct),
-                ClientType.Nzbget  => await nzbgetPoller.PollAsync(client, group, ct),
-                _                  => new DownloadPollGroupResult(true, [], new HashSet<string>()),
-            };
+                var client = group.First().DownloadClient;
 
-            if (!groupResult.ClientReachable)
-            {
-                logger.LogWarning(
-                    "DownloadPollService: client {ClientId} unreachable — skipping MissedPollCount for {Count} download(s)",
-                    client.Id, group.Count());
-                continue;
-            }
-
-            var returnedIds = groupResult.Results.Select(r => r.ClientItemId).ToHashSet();
-
-            foreach (var log in group)
-            {
-                if (returnedIds.Contains(log.ClientItemId!))
+                DownloadPollGroupResult groupResult = client.ClientType switch
                 {
-                    log.MissedPollCount = 0;
-                    ApplyResult(log, groupResult.Results.First(r => r.ClientItemId == log.ClientItemId));
+                    ClientType.Sabnzbd => await sabnzbdPoller.PollAsync(client, group, ct),
+                    ClientType.Nzbget  => await nzbgetPoller.PollAsync(client, group, ct),
+                    _                  => new DownloadPollGroupResult(true, [], new HashSet<string>()),
+                };
+
+                if (!groupResult.ClientReachable)
+                {
+                    logger.LogWarning(
+                        "DownloadPollService: client {ClientId} unreachable — skipping MissedPollCount for {Count} download(s)",
+                        client.Id, group.Count());
+                    continue;
                 }
-                else if (groupResult.HistoryCheckFailedIds.Contains(log.ClientItemId!))
-                {
-                    // History lookup threw — status is unknown, not absent; preserve MissedPollCount.
-                    logger.LogDebug(
-                        "DownloadPollService: history check failed for log {LogId} ('{Name}') — skipping this poll",
-                        log.Id, log.NzbName);
-                }
-                else
-                {
-                    log.MissedPollCount++;
-                    log.UpdatedAt = DateTime.UtcNow;
 
-                    logger.LogDebug(
-                        "DownloadPollService: log {LogId} ('{Name}') not found in client — MissedPollCount now {Count} (clientItemId={ClientItemId}, lastStatus={Status})",
-                        log.Id, log.NzbName, log.MissedPollCount, log.ClientItemId, log.Status);
+                var returnedIds = groupResult.Results.Select(r => r.ClientItemId).ToHashSet();
 
-                    if (log.MissedPollCount >= 3)
+                foreach (var log in group)
+                {
+                    if (returnedIds.Contains(log.ClientItemId!))
                     {
-                        log.Status       = DownloadStatus.Failed;
-                        log.ErrorMessage = "Item not found in download client after 3 polls — likely deleted.";
-                        log.CompletedAt  = DateTime.UtcNow;
-                        logger.LogWarning(
-                            "DownloadPollService: marking log {LogId} ('{Name}') as Failed — missing from client after 3 polls (clientItemId={ClientItemId})",
-                            log.Id, log.NzbName, log.ClientItemId);
+                        log.MissedPollCount = 0;
+                        ApplyResult(log, groupResult.Results.First(r => r.ClientItemId == log.ClientItemId));
+                    }
+                    else if (groupResult.HistoryCheckFailedIds.Contains(log.ClientItemId!))
+                    {
+                        // History lookup threw — status is unknown, not absent; preserve MissedPollCount.
+                        logger.LogDebug(
+                            "DownloadPollService: history check failed for log {LogId} ('{Name}') — skipping this poll",
+                            log.Id, log.NzbName);
+                    }
+                    else
+                    {
+                        log.MissedPollCount++;
+                        log.UpdatedAt = DateTime.UtcNow;
+
+                        logger.LogDebug(
+                            "DownloadPollService: log {LogId} ('{Name}') not found in client — MissedPollCount now {Count} (clientItemId={ClientItemId}, lastStatus={Status})",
+                            log.Id, log.NzbName, log.MissedPollCount, log.ClientItemId, log.Status);
+
+                        if (log.MissedPollCount >= 3)
+                        {
+                            log.Status       = DownloadStatus.Failed;
+                            log.ErrorMessage = "Item not found in download client after 3 polls — likely deleted.";
+                            log.CompletedAt  = DateTime.UtcNow;
+                            logger.LogWarning(
+                                "DownloadPollService: marking log {LogId} ('{Name}') as Failed — missing from client after 3 polls (clientItemId={ClientItemId})",
+                                log.Id, log.NzbName, log.ClientItemId);
+                        }
                     }
                 }
             }
+
+            await db.SaveChangesAsync(ct);
+        }
+
+        await ProcessCompletedDownloadsAsync(pendingLogs, ct);
+    }
+
+    private async Task ProcessCompletedDownloadsAsync(List<DownloadLog> polledLogs, CancellationToken ct)
+    {
+        var newlyCompleted = polledLogs
+            .Where(l => l.Status == DownloadStatus.Completed && l.CompletionPostProcessedAtUtc == null)
+            .ToList();
+
+        var newlyCompletedIds = newlyCompleted.Select(l => l.Id).ToHashSet();
+
+        var recoveryCompleted = await db.DownloadLogs
+            .Where(l =>
+                l.Status == DownloadStatus.Completed &&
+                l.CompletionPostProcessedAtUtc == null &&
+                !newlyCompletedIds.Contains(l.Id))
+            .ToListAsync(ct);
+
+        var completed = newlyCompleted
+            .Concat(recoveryCompleted)
+            .DistinctBy(l => l.Id)
+            .ToList();
+
+        if (completed.Count == 0)
+            return;
+
+        logger.LogDebug(
+            "Running completion post-processing for {Count} completed download(s)",
+            completed.Count);
+
+        var settings = await db.GetSettingsAsync(ct);
+        var completedIds = completed.Select(l => l.Id).ToList();
+        await downloadLogFileSyncService.SyncAsync(
+            completedIds,
+            settings.DeleteNonVideoFilesOnCompletion,
+            ct);
+
+        var notMovedIds = completed
+            .Where(l => l.FilesMovedAtUtc == null)
+            .Select(l => l.Id)
+            .ToList();
+
+        await downloadFileMoveService.MoveAsync(notMovedIds, settings, ct);
+        await FulfillWantedVideosAsync(completed, settings, ct);
+
+        var folderMappings = await db.FolderMappings.ToListAsync(ct);
+
+        var storagePaths = completed
+            .Select(l => l.StoragePath)
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => ApplyFolderMapping(p!, folderMappings))
+            .Distinct()
+            .ToList();
+
+        if (storagePaths.Count > 0)
+            await libraryIndexQueueService.EnqueueForPathsAsync(storagePaths, ct);
+
+        var now = DateTime.UtcNow;
+        foreach (var log in completed)
+        {
+            log.CompletionPostProcessedAtUtc = now;
+            log.UpdatedAt = now;
         }
 
         await db.SaveChangesAsync(ct);
-
-        var completed = pendingLogs
-            .Where(l => l.Status == DownloadStatus.Completed)
-            .ToList();
-
-        if (completed.Count > 0)
-        {
-            var settings = await db.GetSettingsAsync(ct);
-            var completedIds = completed.Select(l => l.Id).ToList();
-            await downloadLogFileSyncService.SyncAsync(
-                completedIds,
-                settings.DeleteNonVideoFilesOnCompletion,
-                ct);
-            await downloadFileMoveService.MoveAsync(completedIds, settings, ct);
-            await FulfillWantedVideosAsync(completed, settings, ct);
-
-            var folderMappings = await db.FolderMappings.ToListAsync(ct);
-
-            var storagePaths = completed
-                .Select(l => l.StoragePath)
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .Select(p => ApplyFolderMapping(p!, folderMappings))
-                .Distinct()
-                .ToList();
-
-            if (storagePaths.Count > 0)
-                await libraryIndexQueueService.EnqueueForPathsAsync(storagePaths, ct);
-        }
     }
 
     private static string ApplyFolderMapping(string path, List<FolderMapping> mappings)
