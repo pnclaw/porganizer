@@ -16,8 +16,7 @@ public class UpdateDownloadClientRequest
     [MaxLength(500)]
     public string Host { get; set; } = string.Empty;
 
-    [Required]
-    public int Port { get; set; }
+    public int? Port { get; set; }
 
     public bool UseSsl { get; set; }
 

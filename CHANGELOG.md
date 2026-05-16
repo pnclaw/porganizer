@@ -3,6 +3,17 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## bugfix/optional-download-client-port — 2026-05-16
+
+### Done
+- Made `Port` nullable (`int?`) on `DownloadClient` and all related request/response DTOs.
+- URL builders in `DownloadClientTester`, `DownloadClientSender`, `SabnzbdPoller`, and `NzbgetPoller` now omit the `:port` segment when no port is set, letting the scheme default (80/443) apply.
+- Added EF migration `MakeDownloadClientPortNullable`.
+- Enables SABnzbd and NZBGet instances hosted behind a reverse proxy (e.g. nginx proxy manager) to be configured with just a hostname and no explicit port.
+
+### Dead Ends
+- *(none)*
+
 ## feature/transfer-downloaded-files-after-failure — 2026-05-15
 
 ### Done
