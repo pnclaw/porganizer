@@ -55,7 +55,8 @@ public class SabnzbdPoller(IHttpClientFactory httpClientFactory, ILogger<Sabnzbd
     {
         var results = new List<DownloadPollResult>();
         var scheme = client.UseSsl ? "https" : "http";
-        var url = $"{scheme}://{client.Host}:{client.Port}/api?mode=queue&output=json&apikey={client.ApiKey}";
+        var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
+        var url = $"{scheme}://{client.Host}{portSegment}/api?mode=queue&output=json&apikey={client.ApiKey}";
 
         try
         {
@@ -122,7 +123,8 @@ public class SabnzbdPoller(IHttpClientFactory httpClientFactory, ILogger<Sabnzbd
         DownloadClient client, string nzoId, CancellationToken ct)
     {
         var scheme = client.UseSsl ? "https" : "http";
-        var url = $"{scheme}://{client.Host}:{client.Port}/api" +
+        var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
+        var url = $"{scheme}://{client.Host}{portSegment}/api" +
                   $"?mode=history&output=json&apikey={client.ApiKey}&nzo_id={nzoId}";
 
         try
