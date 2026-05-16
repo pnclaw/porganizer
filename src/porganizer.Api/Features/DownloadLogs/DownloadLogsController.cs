@@ -9,7 +9,7 @@ namespace porganizer.Api.Features.DownloadLogs;
 [ApiController]
 [Route("api/download-logs")]
 [Produces("application/json")]
-public class DownloadLogsController(AppDbContext db, DownloadPollService pollService, DownloadFileMoveService downloadFileMoveService) : ControllerBase
+public class DownloadLogsController(AppDbContext db, DownloadPollService pollService, DownloadFileMoveService downloadFileMoveService, DownloadLogFileSyncService downloadLogFileSyncService) : ControllerBase
 {
     [HttpPost("poll")]
     [EndpointSummary("Poll download clients")]
@@ -109,7 +109,7 @@ public class DownloadLogsController(AppDbContext db, DownloadPollService pollSer
 
     [HttpPost("{id:guid}/move")]
     [EndpointSummary("Move a completed download's files")]
-    [EndpointDescription("Triggers the file-move post-processing step for a single completed download that has not been moved yet. Requires the organize-by-site setting to be enabled with a target folder configured. Returns the updated log and a list of per-step log entries.")]
+    [EndpointDescription("Triggers the file-move post-processing step for a single completed download that has not been moved yet. Syncs file records from disk before moving, so downloads that completed while offline are handled correctly. Requires the organize-by-site setting to be enabled with a target folder configured. Returns the updated log and a list of per-step log entries.")]
     [ProducesResponseType(typeof(MoveResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -129,6 +129,8 @@ public class DownloadLogsController(AppDbContext db, DownloadPollService pollSer
             return BadRequest("Files have already been moved for this download.");
 
         var settings = await db.GetSettingsAsync(ct);
+
+        await downloadLogFileSyncService.SyncAsync([id], settings.DeleteNonVideoFilesOnCompletion, ct);
 
         var entries = await downloadFileMoveService.MoveAsync([id], settings, ct);
 
