@@ -6,6 +6,8 @@ namespace porganizer.Api.Features.DownloadClients;
 
 public class SabnzbdPoller(IHttpClientFactory httpClientFactory, ILogger<SabnzbdPoller> logger)
 {
+    private const int NzoIdBatchSize = 100;
+
     /// <summary>
     /// Polls the SABnzbd queue and history for the supplied logs and returns updated snapshots.
     /// Items found in the queue are in progress; items not in the queue are looked up in history.
@@ -56,63 +58,71 @@ public class SabnzbdPoller(IHttpClientFactory httpClientFactory, ILogger<Sabnzbd
         var results = new List<DownloadPollResult>();
         var scheme = client.UseSsl ? "https" : "http";
         var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
-        var url = $"{scheme}://{client.Host}{portSegment}/api?mode=queue&output=json&apikey={client.ApiKey}";
+        var wantedIds = nzoIds.ToList();
 
-        try
+        foreach (var batch in wantedIds.Chunk(NzoIdBatchSize))
         {
-            var http = CreateClient();
-            var json = await http.GetStringAsync(url, ct);
-            using var doc = JsonDocument.Parse(json);
+            var requestedIds = string.Join(",", batch);
+            var url = $"{scheme}://{client.Host}{portSegment}/api" +
+                      $"?mode=queue&output=json&apikey={client.ApiKey}" +
+                      $"&nzo_ids={Uri.EscapeDataString(requestedIds)}";
 
-            if (!doc.RootElement.TryGetProperty("queue", out var queue)) return (results, true);
-            if (!queue.TryGetProperty("slots", out var slots)) return (results, true);
-
-            var wanted = new HashSet<string>(nzoIds);
-
-            foreach (var slot in slots.EnumerateArray())
+            try
             {
-                var nzoId = slot.TryGetProperty("nzo_id", out var nzoEl) ? nzoEl.GetString() : null;
-                if (nzoId == null || !wanted.Contains(nzoId)) continue;
+                var http = CreateClient();
+                var json = await http.GetStringAsync(url, ct);
+                using var doc = JsonDocument.Parse(json);
 
-                var status = MapQueueStatus(
-                    slot.TryGetProperty("status", out var stEl) ? stEl.GetString() : null);
+                if (!doc.RootElement.TryGetProperty("queue", out var queue)) continue;
+                if (!queue.TryGetProperty("slots", out var slots)) continue;
 
-                long? total = null;
-                long? downloaded = null;
-                if (slot.TryGetProperty("mb", out var mbEl) &&
-                    double.TryParse(mbEl.GetString(), System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var totalMb))
+                var wanted = new HashSet<string>(batch);
+
+                foreach (var slot in slots.EnumerateArray())
                 {
-                    total = (long)(totalMb * 1024 * 1024);
+                    var nzoId = slot.TryGetProperty("nzo_id", out var nzoEl) ? nzoEl.GetString() : null;
+                    if (nzoId == null || !wanted.Contains(nzoId)) continue;
+
+                    var status = MapQueueStatus(
+                        slot.TryGetProperty("status", out var stEl) ? stEl.GetString() : null);
+
+                    long? total = null;
+                    long? downloaded = null;
+                    if (slot.TryGetProperty("mb", out var mbEl) &&
+                        double.TryParse(mbEl.GetString(), System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var totalMb))
+                    {
+                        total = (long)(totalMb * 1024 * 1024);
+                    }
+                    if (total.HasValue &&
+                        slot.TryGetProperty("mbleft", out var mbLeftEl) &&
+                        double.TryParse(mbLeftEl.GetString(), System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var leftMb))
+                    {
+                        downloaded = total.Value - (long)(leftMb * 1024 * 1024);
+                    }
+
+                    results.Add(new DownloadPollResult
+                    {
+                        ClientItemId    = nzoId,
+                        Status          = status,
+                        TotalSizeBytes  = total,
+                        DownloadedBytes = downloaded,
+                    });
                 }
-                if (total.HasValue &&
-                    slot.TryGetProperty("mbleft", out var mbLeftEl) &&
-                    double.TryParse(mbLeftEl.GetString(), System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var leftMb))
-                {
-                    downloaded = total.Value - (long)(leftMb * 1024 * 1024);
-                }
-
-                results.Add(new DownloadPollResult
-                {
-                    ClientItemId    = nzoId,
-                    Status          = status,
-                    TotalSizeBytes  = total,
-                    DownloadedBytes = downloaded,
-                });
             }
-
-            logger.LogDebug(
-                "SabnzbdPoller: queue poll for client {ClientId} matched {Found}/{Wanted} wanted item(s)",
-                client.Id, results.Count, wanted.Count);
-
-            return (results, true);
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Failed to poll SABnzbd queue for client {ClientId}", client.Id);
+                return ([], false);
+            }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogWarning(ex, "Failed to poll SABnzbd queue for client {ClientId}", client.Id);
-            return ([], false);
-        }
+
+        logger.LogDebug(
+            "SabnzbdPoller: queue poll for client {ClientId} matched {Found}/{Wanted} wanted item(s)",
+            client.Id, results.Count, wantedIds.Count);
+
+        return (results, true);
     }
 
     /// <returns>
@@ -125,7 +135,8 @@ public class SabnzbdPoller(IHttpClientFactory httpClientFactory, ILogger<Sabnzbd
         var scheme = client.UseSsl ? "https" : "http";
         var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
         var url = $"{scheme}://{client.Host}{portSegment}/api" +
-                  $"?mode=history&output=json&apikey={client.ApiKey}&nzo_id={nzoId}";
+                  $"?mode=history&output=json&apikey={client.ApiKey}" +
+                  $"&nzo_ids={Uri.EscapeDataString(nzoId)}";
 
         try
         {

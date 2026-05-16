@@ -183,6 +183,37 @@ public sealed class DownloadPollServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task PollAsync_WhenSabnzbdQueueIsLarge_FiltersQueueByClientItemIdBeforeMarkingMissing()
+    {
+        // SABnzbd queue responses can be paged. If porganizer only sees the first page,
+        // deep queued items look absent and can be marked Failed after repeated polls.
+        var (_, log) = await SeedSabnzbdDownloadAsync("nzo-deep", DownloadStatus.Queued, missedPollCount: 2);
+
+        var service = BuildService(sabnzbdHandler: request =>
+        {
+            var mode = ParseMode(request.RequestUri!);
+            if (mode == "queue")
+            {
+                ParseQueryValue(request.RequestUri!, "nzo_ids").Should().Be("nzo-deep");
+                return Ok(SabnzbdQueue("nzo-deep", "Queued"));
+            }
+            if (mode == "history")
+            {
+                throw new InvalidOperationException("History should not be queried for a queue hit.");
+            }
+            throw new InvalidOperationException($"Unexpected mode: {mode}");
+        });
+
+        await service.PollAsync(CancellationToken.None);
+
+        var saved = await _db.DownloadLogs.SingleAsync(l => l.Id == log.Id);
+        saved.MissedPollCount.Should().Be(0);
+        saved.Status.Should().Be(DownloadStatus.Queued);
+        saved.CompletedAt.Should().BeNull();
+        saved.ErrorMessage.Should().BeNull();
+    }
+
+    [Fact]
     public async Task PollAsync_WhenSabnzbdItemAbsentFor3Polls_MarksAsFailed()
     {
         // Simulate the third consecutive missed poll: MissedPollCount starts at 2.
@@ -308,11 +339,32 @@ public sealed class DownloadPollServiceTests : IDisposable
     private static string? ParseMode(Uri uri) =>
         System.Web.HttpUtility.ParseQueryString(uri.Query)["mode"];
 
+    private static string? ParseQueryValue(Uri uri, string name) =>
+        System.Web.HttpUtility.ParseQueryString(uri.Query)[name];
+
     private static HttpResponseMessage Ok(string json) =>
         new(HttpStatusCode.OK) { Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json") };
 
     private static string EmptySabnzbdQueue() =>
         JsonSerializer.Serialize(new { queue = new { slots = Array.Empty<object>() } });
+
+    private static string SabnzbdQueue(string nzoId, string status) =>
+        JsonSerializer.Serialize(new
+        {
+            queue = new
+            {
+                slots = new[]
+                {
+                    new
+                    {
+                        nzo_id = nzoId,
+                        status,
+                        mb = "100.00",
+                        mbleft = "100.00",
+                    }
+                }
+            }
+        });
 
     private static string EmptySabnzbdHistory() =>
         JsonSerializer.Serialize(new { history = new { slots = Array.Empty<object>() } });

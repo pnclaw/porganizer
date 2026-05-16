@@ -3,6 +3,15 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/download-polling-large-queue — 2026-05-16
+
+### Done
+- Fixed SABnzbd polling for large queues by querying queue and history with the tracked `nzo_id`s instead of relying on the default queue page, preventing deep queued items from being counted as missing and eventually marked Failed.
+- Added a regression test for a SABnzbd item that is still queued after repeated missed polls, verifying the queue request includes `nzo_ids` and the item is not failed.
+
+### Dead Ends
+*(none)*
+
 ## feature/download-move-bug — 2026-05-16
 
 ### Done
