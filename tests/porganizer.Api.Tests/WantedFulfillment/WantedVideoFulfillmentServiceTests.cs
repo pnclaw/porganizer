@@ -149,6 +149,74 @@ public sealed class WantedVideoFulfillmentServiceTests : IDisposable
         newQueued.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task RunAsync_VideoWithPendingSendMarker_DoesNotSendAgain()
+    {
+        var videoId = Guid.NewGuid();
+        var rowId   = Guid.NewGuid();
+        var sendAttempts = 0;
+
+        SeedVideo(videoId);
+        SeedWantedVideo(videoId, isFulfilled: false);
+        SeedIndexerRow(rowId, "Movie.1080p.NZB");
+        SeedMatch(Guid.NewGuid(), rowId, videoId);
+
+        _db.DownloadLogs.Add(new DownloadLog
+        {
+            Id               = Guid.NewGuid(),
+            IndexerRowId     = rowId,
+            DownloadClientId = _clientId,
+            NzbName          = "Movie.1080p.NZB",
+            NzbUrl           = "https://indexer.test/nzb/1",
+            ClientItemId     = null,
+            Status           = DownloadStatus.Queued,
+            CreatedAt        = DateTime.UtcNow,
+            UpdatedAt        = DateTime.UtcNow,
+        });
+
+        await _db.SaveChangesAsync();
+
+        await RunServiceAsync(Sender(request =>
+        {
+            sendAttempts++;
+            return SuccessResponse();
+        }));
+
+        sendAttempts.Should().Be(0);
+        (await _db.DownloadLogs.CountAsync(l => l.IndexerRowId == rowId)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RunAsync_WhenSendFails_MarksPendingLogFailed()
+    {
+        var videoId = Guid.NewGuid();
+        var rowId   = Guid.NewGuid();
+
+        SeedVideo(videoId);
+        SeedWantedVideo(videoId, isFulfilled: false);
+        SeedIndexerRow(rowId, "Movie.1080p.NZB");
+        SeedMatch(Guid.NewGuid(), rowId, videoId);
+        await _db.SaveChangesAsync();
+
+        await RunServiceAsync(Sender(_ =>
+        {
+            var response = JsonSerializer.Serialize(new
+            {
+                status = false,
+            });
+
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(response, System.Text.Encoding.UTF8, "application/json"),
+            };
+        }));
+
+        var log = await _db.DownloadLogs.SingleAsync(l => l.IndexerRowId == rowId);
+        log.Status.Should().Be(DownloadStatus.Failed);
+        log.ErrorMessage.Should().Contain("rejected");
+        log.CompletedAt.Should().NotBeNull();
+    }
+
     // -------------------------------------------------------------------------
     // Fulfilled video is skipped entirely
     // -------------------------------------------------------------------------
@@ -376,6 +444,9 @@ public sealed class WantedVideoFulfillmentServiceTests : IDisposable
     }
 
     private DownloadClientSender AlwaysSucceedSender()
+        => Sender(_ => SuccessResponse());
+
+    private static HttpResponseMessage SuccessResponse()
     {
         var sabnzbdResponse = JsonSerializer.Serialize(new
         {
@@ -383,12 +454,14 @@ public sealed class WantedVideoFulfillmentServiceTests : IDisposable
             nzo_ids = new[] { Guid.NewGuid().ToString() },
         });
 
-        return new DownloadClientSender(new StubHttpClientFactory(_ =>
-            new HttpResponseMessage(System.Net.HttpStatusCode.OK)
-            {
-                Content = new StringContent(sabnzbdResponse, System.Text.Encoding.UTF8, "application/json"),
-            }));
+        return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent(sabnzbdResponse, System.Text.Encoding.UTF8, "application/json"),
+        };
     }
+
+    private DownloadClientSender Sender(Func<HttpRequestMessage, HttpResponseMessage> responder)
+        => new(new StubHttpClientFactory(responder));
 
     // Creates a fresh HttpClient per call so that setting Timeout doesn't throw
     // after the first request (HttpClient.Timeout is immutable once used).

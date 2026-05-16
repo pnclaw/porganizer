@@ -23,6 +23,7 @@ public class DownloadLogResponse
     public string? ErrorMessage { get; set; }
     public DateTime? LastPolledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public DateTime? CompletionPostProcessedAtUtc { get; set; }
     public DateTime? FilesMovedAtUtc { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

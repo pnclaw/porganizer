@@ -39,9 +39,6 @@ public class WantedVideoFulfillmentService(
         await RunNormalAsync(preferred, client, counters, ct);
         await RunAllQualitiesAsync(client, counters, ct);
 
-        if (counters.Sent > 0)
-            await db.SaveChangesAsync(ct);
-
         logger.LogInformation(
             "WantedVideoFulfillmentService: {Sent} queued, {Failed} failed to send",
             counters.Sent, counters.Failed);
@@ -141,6 +138,23 @@ public class WantedVideoFulfillmentService(
         Counters counters,
         CancellationToken ct)
     {
+        var now = DateTime.UtcNow;
+
+        var log = new DownloadLog
+        {
+            Id               = Guid.NewGuid(),
+            IndexerRowId     = row.Id,
+            DownloadClientId = client.Id,
+            NzbName          = row.Title,
+            NzbUrl           = row.NzbUrl,
+            Status           = DownloadStatus.Queued,
+            CreatedAt        = now,
+            UpdatedAt        = now,
+        };
+
+        db.DownloadLogs.Add(log);
+        await db.SaveChangesAsync(ct);
+
         var (success, message, clientItemId) = await sender.SendAsync(
             client, row.NzbUrl, row.Title, ct);
 
@@ -149,24 +163,19 @@ public class WantedVideoFulfillmentService(
             logger.LogWarning(
                 "WantedVideoFulfillmentService: failed to send '{Title}' — {Message}",
                 row.Title, message);
+            log.Status       = DownloadStatus.Failed;
+            log.ErrorMessage = message;
+            log.CompletedAt  = DateTime.UtcNow;
+            log.UpdatedAt    = DateTime.UtcNow;
+            await db.SaveChangesAsync(ct);
             counters.Failed++;
             return;
         }
 
-        var now = DateTime.UtcNow;
-
-        db.DownloadLogs.Add(new DownloadLog
-        {
-            Id               = Guid.NewGuid(),
-            IndexerRowId     = row.Id,
-            DownloadClientId = client.Id,
-            NzbName          = row.Title,
-            NzbUrl           = row.NzbUrl,
-            ClientItemId     = clientItemId,
-            Status           = DownloadStatus.Queued,
-            CreatedAt        = now,
-            UpdatedAt        = now,
-        });
+        log.ClientItemId = clientItemId;
+        log.ErrorMessage = null;
+        log.UpdatedAt    = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
 
         logger.LogInformation(
             "WantedVideoFulfillmentService: queued '{Title}' via {Client}",

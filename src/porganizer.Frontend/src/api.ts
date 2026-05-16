@@ -495,6 +495,7 @@ export interface DownloadLog {
   errorMessage: string | null
   lastPolledAt: string | null
   completedAt: string | null
+  completionPostProcessedAtUtc: string | null
   filesMovedAtUtc: string | null
   createdAt: string
   updatedAt: string

@@ -98,6 +98,7 @@ public class DownloadLogsController(AppDbContext db, DownloadPollService pollSer
         log.MissedPollCount = 0;
         log.ErrorMessage    = null;
         log.CompletedAt     = null;
+        log.CompletionPostProcessedAtUtc = null;
         log.UpdatedAt       = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
@@ -184,6 +185,7 @@ public class DownloadLogsController(AppDbContext db, DownloadPollService pollSer
         ErrorMessage         = log.ErrorMessage,
         LastPolledAt         = log.LastPolledAt,
         CompletedAt          = log.CompletedAt,
+        CompletionPostProcessedAtUtc = log.CompletionPostProcessedAtUtc,
         FilesMovedAtUtc      = log.FilesMovedAtUtc,
         CreatedAt            = log.CreatedAt,
         UpdatedAt            = log.UpdatedAt,

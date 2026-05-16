@@ -3,6 +3,25 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/download-polling-large-queue — 2026-05-16
+
+### Done
+- Fixed SABnzbd polling for large queues by querying queue and history with the tracked `nzo_id`s instead of relying on the default queue page, preventing deep queued items from being counted as missing and eventually marked Failed.
+- Added durable completion post-processing tracking for download logs. Completed logs whose file sync, move, wanted fulfillment, or library queue work did not finish are now picked up by later poll cycles without re-polling the download client.
+- Made wanted-video fulfillment persist a queued download-log marker before sending to the download client, so a crash after client acceptance does not enqueue the same wanted item again on the next run.
+- Serialized download polling through a singleton coordinator so scheduled polling, manual polling, and recheck requests cannot apply stale overlapping state transitions to the same download log.
+- Treat SABnzbd add-url responses without a usable `nzo_ids` value as send failures, preventing queued download logs that cannot ever be polled.
+- Centralized download folder mapping with path-boundary checks so mappings like `/downloads` no longer rewrite sibling paths such as `/downloads2`.
+- Added a regression test for a SABnzbd item that is still queued after repeated missed polls, verifying the queue request includes `nzo_ids` and the item is not failed.
+- Added a regression test for a completed log with unfinished post-processing, verifying the recovery pass runs without contacting the download client.
+- Added regression tests for wanted-fulfillment in-flight markers and send failures updating the durable marker to Failed.
+- Added a regression test proving overlapping download poll calls wait for the active poll to finish before touching the download client.
+- Added regression tests for SABnzbd success responses that omit, return empty, or return blank `nzo_ids`.
+- Added folder-mapping regression tests for exact folder matches, child paths, similarly named sibling folders, trailing separators, and overlapping mappings.
+
+### Dead Ends
+*(none)*
+
 ## feature/download-move-bug — 2026-05-16
 
 ### Done

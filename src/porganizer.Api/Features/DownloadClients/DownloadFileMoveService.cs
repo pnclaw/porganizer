@@ -92,7 +92,7 @@ public class DownloadFileMoveService(
             var siteFolder  = Path.Combine(targetRoot, siteName);
             Directory.CreateDirectory(siteFolder);
 
-            var sourceFolder = ApplyFolderMapping(log.StoragePath, folderMappings);
+            var sourceFolder = DownloadFolderMapper.Apply(log.StoragePath, folderMappings);
             logger.LogInformation(
                 "DownloadFileMoveService: log {LogId} storagePath='{StoragePath}' sourceFolder='{SourceFolder}'",
                 log.Id, log.StoragePath, sourceFolder);
@@ -237,17 +237,6 @@ public class DownloadFileMoveService(
         VideoQuality.P2160 => "2160p",
         _                  => null,
     };
-
-    private static string ApplyFolderMapping(string path, List<FolderMapping> mappings)
-    {
-        foreach (var mapping in mappings)
-        {
-            if (path.StartsWith(mapping.OriginalFolder, StringComparison.OrdinalIgnoreCase))
-                return mapping.MappedToFolder + path[mapping.OriginalFolder.Length..];
-        }
-
-        return path;
-    }
 
     private static string UniqueDestPath(string folder, string fileName)
     {

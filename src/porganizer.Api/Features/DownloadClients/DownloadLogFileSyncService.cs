@@ -56,15 +56,7 @@ public class DownloadLogFileSyncService(AppDbContext db, ILogger<DownloadLogFile
         if (string.IsNullOrWhiteSpace(log.StoragePath))
             return DownloadLogFileSyncResult.NoDirectory();
 
-        var localPath = log.StoragePath;
-        foreach (var mapping in folderMappings)
-        {
-            if (localPath.StartsWith(mapping.OriginalFolder, StringComparison.OrdinalIgnoreCase))
-            {
-                localPath = mapping.MappedToFolder + localPath[mapping.OriginalFolder.Length..];
-                break;
-            }
-        }
+        var localPath = DownloadFolderMapper.Apply(log.StoragePath, folderMappings);
 
         string scanRoot;
         string[] allPaths;
