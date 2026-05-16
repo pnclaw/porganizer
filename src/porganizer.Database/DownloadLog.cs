@@ -54,6 +54,7 @@ public class DownloadLog : BaseEntity
 
     public DateTime? LastPolledAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    public DateTime? CompletionPostProcessedAtUtc { get; set; }
 
     /// <summary>
     /// Number of consecutive poll cycles in which this item was not found in either the

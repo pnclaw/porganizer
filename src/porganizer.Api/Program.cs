@@ -68,6 +68,7 @@ builder.Services.AddScoped<porganizer.Api.Features.Indexers.Scraping.IndexerBack
 builder.Services.AddHostedService<IndexerScraperBackgroundService>();
 builder.Services.AddScoped<DownloadClientTester>();
 builder.Services.AddScoped<DownloadClientSender>();
+builder.Services.AddSingleton<porganizer.Api.Features.DownloadClients.DownloadPollCoordinator>();
 builder.Services.AddScoped<porganizer.Api.Features.DownloadClients.DownloadLogFileSyncService>();
 builder.Services.AddScoped<porganizer.Api.Features.DownloadClients.DownloadFileMoveService>();
 builder.Services.AddScoped<porganizer.Api.Features.DownloadClients.DownloadPollService>();

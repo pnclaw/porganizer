@@ -52,6 +52,9 @@ public class DownloadClientSender(IHttpClientFactory httpClientFactory)
                 nzoId = nzoIdsEl[0].GetString();
             }
 
+            if (string.IsNullOrWhiteSpace(nzoId))
+                return (false, "SABnzbd accepted the request but did not return a download item ID", null);
+
             return (true, $"Sent to SABnzbd ({client.Title})", nzoId);
         }
         catch (TaskCanceledException) { return (false, "Request timed out", null); }
