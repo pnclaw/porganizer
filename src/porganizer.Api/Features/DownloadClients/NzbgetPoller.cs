@@ -165,7 +165,8 @@ public class NzbgetPoller(IHttpClientFactory httpClientFactory, ILogger<NzbgetPo
         DownloadClient client, string method, object[] parameters, CancellationToken ct)
     {
         var scheme = client.UseSsl ? "https" : "http";
-        var url = $"{scheme}://{client.Host}:{client.Port}/jsonrpc";
+        var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
+        var url = $"{scheme}://{client.Host}{portSegment}/jsonrpc";
 
         var body = JsonSerializer.Serialize(new
         {

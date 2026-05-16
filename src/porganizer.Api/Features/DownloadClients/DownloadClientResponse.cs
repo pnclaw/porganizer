@@ -6,7 +6,7 @@ public class DownloadClientResponse
     public string Title { get; set; } = string.Empty;
     public int ClientType { get; set; }
     public string Host { get; set; } = string.Empty;
-    public int Port { get; set; }
+    public int? Port { get; set; }
     public bool UseSsl { get; set; }
     public string ApiKey { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;

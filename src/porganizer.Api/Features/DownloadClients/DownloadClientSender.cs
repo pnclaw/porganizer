@@ -23,7 +23,8 @@ public class DownloadClientSender(IHttpClientFactory httpClientFactory)
         DownloadClient client, string nzbUrl, string name, CancellationToken ct)
     {
         var scheme = client.UseSsl ? "https" : "http";
-        var url = $"{scheme}://{client.Host}:{client.Port}/api" +
+        var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
+        var url = $"{scheme}://{client.Host}{portSegment}/api" +
                   $"?mode=addurl" +
                   $"&name={Uri.EscapeDataString(nzbUrl)}" +
                   $"&nzbname={Uri.EscapeDataString(name)}" +
@@ -62,7 +63,8 @@ public class DownloadClientSender(IHttpClientFactory httpClientFactory)
         DownloadClient client, string nzbUrl, string name, CancellationToken ct)
     {
         var scheme = client.UseSsl ? "https" : "http";
-        var url = $"{scheme}://{client.Host}:{client.Port}/jsonrpc";
+        var portSegment = client.Port.HasValue ? $":{client.Port.Value}" : string.Empty;
+        var url = $"{scheme}://{client.Host}{portSegment}/jsonrpc";
 
         var body = JsonSerializer.Serialize(new
         {

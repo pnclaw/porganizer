@@ -8,7 +8,7 @@ namespace porganizer.Api.Features.DownloadClients;
 public class DownloadClientTester(IHttpClientFactory httpClientFactory)
 {
     public async Task<(bool Success, string Message)> TestAsync(
-        ClientType clientType, string host, int port, bool useSsl,
+        ClientType clientType, string host, int? port, bool useSsl,
         string apiKey, string username, string password,
         CancellationToken ct = default)
     {
@@ -21,12 +21,13 @@ public class DownloadClientTester(IHttpClientFactory httpClientFactory)
     }
 
     private async Task<(bool, string)> TestSabnzbdAsync(
-        string host, int port, bool useSsl, string apiKey, CancellationToken ct)
+        string host, int? port, bool useSsl, string apiKey, CancellationToken ct)
     {
         var scheme = useSsl ? "https" : "http";
+        var portSegment = port.HasValue ? $":{port.Value}" : string.Empty;
         // Use mode=queue to verify both connectivity and API key
         var mode = string.IsNullOrEmpty(apiKey) ? "version" : "queue";
-        var url = $"{scheme}://{host}:{port}/api?mode={mode}&output=json&apikey={apiKey}";
+        var url = $"{scheme}://{host}{portSegment}/api?mode={mode}&output=json&apikey={apiKey}";
 
         try
         {
@@ -55,10 +56,11 @@ public class DownloadClientTester(IHttpClientFactory httpClientFactory)
     }
 
     private async Task<(bool, string)> TestNzbgetAsync(
-        string host, int port, bool useSsl, string username, string password, CancellationToken ct)
+        string host, int? port, bool useSsl, string username, string password, CancellationToken ct)
     {
         var scheme = useSsl ? "https" : "http";
-        var url = $"{scheme}://{host}:{port}/jsonrpc";
+        var portSegment = port.HasValue ? $":{port.Value}" : string.Empty;
+        var url = $"{scheme}://{host}{portSegment}/jsonrpc";
 
         var body = JsonSerializer.Serialize(new
         {
