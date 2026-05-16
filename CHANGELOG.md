@@ -7,7 +7,8 @@ See [`docs/changelog/`](docs/changelog/) for archived entries.
 
 ### Done
 - Fixed "Move files" button returning "No files are recorded for this download" when the download completed while porganizer was offline. The manual move endpoint now runs `DownloadLogFileSyncService.SyncAsync` before `DownloadFileMoveService.MoveAsync`, matching the automatic poll-completion flow.
-- Added a regression test that seeds a completed log with a real file on disk but no `DownloadLogFile` records in the DB, verifying the sync step fires and the old error message is absent.
+- Fixed remaining manual move failures where a completed log's `StoragePath` points directly at the downloaded video file instead of its containing folder; file sync now records the file, normalizes the source folder, and the move service reports a source-aware warning when no recognized videos are found.
+- Added regression tests that seed completed logs with real files on disk but no `DownloadLogFile` records in the DB, verifying both directory-valued and file-valued storage paths sync and move successfully.
 
 ### Dead Ends
 *(none)*
