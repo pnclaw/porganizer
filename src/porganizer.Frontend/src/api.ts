@@ -94,7 +94,7 @@ export interface DownloadClient {
   title: string
   clientType: number
   host: string
-  port: number
+  port: number | null
   useSsl: boolean
   apiKey: string
   username: string
@@ -109,7 +109,7 @@ export interface CreateDownloadClientRequest {
   title: string
   clientType: ClientType
   host: string
-  port: number
+  port: number | null
   useSsl: boolean
   apiKey: string
   username: string
@@ -965,7 +965,7 @@ export const api = {
       request<DownloadClient>(`/download-clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) =>
       request<void>(`/download-clients/${id}`, { method: 'DELETE' }),
-    test: (data: { clientType: ClientType; host: string; port: number; useSsl: boolean; apiKey: string; username: string; password: string }) =>
+    test: (data: { clientType: ClientType; host: string; port: number | null; useSsl: boolean; apiKey: string; username: string; password: string }) =>
       request<{ success: boolean; message: string }>('/download-clients/test', { method: 'POST', body: JSON.stringify(data) }),
     send: (id: string, nzbUrl: string, name: string, indexerId: string, indexerRowId?: string) =>
       request<{ success: boolean; message: string; downloadLogId: string | null }>(`/download-clients/${id}/send`, {
