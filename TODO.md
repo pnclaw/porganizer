@@ -2,20 +2,6 @@
 
 ## Download backend reliability
 
-### Avoid duplicate sends after wanted-fulfillment crashes
-
-Wanted fulfillment sends an NZB to the download client before a `DownloadLog` is saved. If SABnzbd
-or NZBGet accepts the item but the app stops before `SaveChangesAsync`, the next fulfillment run sees
-no log and can enqueue the same download again.
-
-**What needs implementing:**
-
-1. Persist a durable "send pending/in-flight" record before calling the download client, then update
-   it with the returned client item ID.
-2. Alternatively enforce an idempotency key or unique pending marker per indexer row before send.
-3. Add a regression test that simulates send success followed by a DB save failure and verifies the
-   next run does not send the same NZB again.
-
 ### Serialize or guard concurrent download polling
 
 The scheduled polling worker and on-demand endpoints can call `DownloadPollService.PollAsync`
