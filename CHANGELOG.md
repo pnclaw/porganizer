@@ -3,6 +3,17 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## bugfix/download-client-port-frontend — 2026-05-16
+
+### Done
+- Made port optional in the download client form: removed the required validation rule, defaulted the empty form to `null` instead of `8080`.
+- Updated `DownloadClient` and `CreateDownloadClientRequest` TypeScript interfaces to `port: number | null`.
+- Updated the inline `test()` parameter type in `api.ts` to `port: number | null`.
+- Card subtitle now renders `host:port` only when a port is set, gracefully omitting the colon for proxy-hosted clients.
+
+### Dead Ends
+- *(none)*
+
 ## bugfix/optional-download-client-port — 2026-05-16
 
 ### Done
