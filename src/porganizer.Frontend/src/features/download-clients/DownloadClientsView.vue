@@ -32,7 +32,7 @@
                 size="small"
                 class="mr-1"
               >{{ client.useSsl ? 'mdi-lock' : 'mdi-lock-open-outline' }}</v-icon>
-              {{ client.host }}:{{ client.port }}
+              {{ client.host }}{{ client.port != null ? `:${client.port}` : '' }}
             </v-card-subtitle>
             <template #append>
               <v-chip :color="client.isEnabled ? 'success' : 'default'" size="small">
@@ -92,8 +92,6 @@
                   v-model.number="form.port"
                   label="Port"
                   type="number"
-                  :rules="[required]"
-                  required
                   hide-details
                 />
               </v-col>
@@ -236,11 +234,11 @@ const deleteDialog = ref(false)
 const deleting = ref(false)
 const deletingClient = ref<DownloadClient | null>(null)
 
-const emptyForm = () => ({
+const emptyForm = (): { title: string; clientType: ClientType; host: string; port: number | null; useSsl: boolean; apiKey: string; username: string; password: string; category: string; isEnabled: boolean } => ({
   title: '',
   clientType: ClientType.Sabnzbd,
   host: '',
-  port: 8080,
+  port: null,
   useSsl: false,
   apiKey: '',
   username: '',
