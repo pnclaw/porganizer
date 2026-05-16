@@ -16,10 +16,13 @@ public class DownloadPollService(
     DownloadFileMoveService downloadFileMoveService,
     LibraryIndexQueueService libraryIndexQueueService,
     IHttpClientFactory httpClientFactory,
+    DownloadPollCoordinator pollCoordinator,
     ILogger<DownloadPollService> logger)
 {
     public async Task PollAsync(CancellationToken ct)
     {
+        using var pollLease = await pollCoordinator.WaitForTurnAsync(ct);
+
         var pendingLogs = await db.DownloadLogs
             .Include(l => l.DownloadClient)
             .Where(l =>
