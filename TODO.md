@@ -1,7 +1,5 @@
 # TODO / Future Work
 
-## Download backend reliability
-
 ## Re-sync older unverified filehashes
 
 `PrdbVideoFilehash.IsVerified` can transition from `false` → `true` after the initial sync as more
