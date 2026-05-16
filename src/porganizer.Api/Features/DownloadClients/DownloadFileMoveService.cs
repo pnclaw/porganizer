@@ -31,12 +31,12 @@ public class DownloadFileMoveService(
         var logs = await db.DownloadLogs
             .Include(l => l.Files)
             .Include(l => l.IndexerRow)
-            .Where(l => downloadLogIds.Contains(l.Id) && l.Files.Count > 0)
+            .Where(l => downloadLogIds.Contains(l.Id))
             .ToListAsync(ct);
 
         if (logs.Count == 0)
         {
-            entries.Add(new(MoveLogLevel.Warning, "No files are recorded for this download — nothing to move."));
+            entries.Add(new(MoveLogLevel.Warning, "No matching download logs were found."));
             return entries;
         }
 
@@ -110,6 +110,12 @@ public class DownloadFileMoveService(
             var video        = match.Video;
             var files        = log.Files.DistinctBy(f => f.Id).ToList();
             var movedCount   = 0;
+
+            if (files.Count == 0)
+            {
+                entries.Add(new(MoveLogLevel.Warning, $"No recognized video files found in source folder: {sourceFolder}"));
+                continue;
+            }
 
             logger.LogInformation(
                 "DownloadFileMoveService: log {LogId} has {FileCount} file(s): [{FileNames}]",

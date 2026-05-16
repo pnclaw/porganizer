@@ -67,8 +67,14 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
             settings.CompletedDownloadsTargetFolder = targetDir;
             await db.SaveChangesAsync();
 
-            // Seed the log with StoragePath but deliberately NO DownloadLogFile records.
-            var id = await SeedLogAsync(DownloadStatus.Completed, filesMovedAtUtc: null, storagePath: sourceDir);
+            // Seed the log with StoragePath and a PRDB video/site match, but deliberately
+            // NO DownloadLogFile records. A successful move must first sync the file row
+            // from disk, then use the match to resolve the destination site folder.
+            var id = await SeedLogAsync(
+                DownloadStatus.Completed,
+                filesMovedAtUtc: null,
+                storagePath: sourceDir,
+                withPrdbMatch: true);
 
             var response = await _client.PostAsync($"/api/download-logs/{id}/move", null);
 
@@ -76,8 +82,86 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
             var body = await response.Content.ReadFromJsonAsync<MoveBody>();
             body.Should().NotBeNull();
 
-            // The sync should have run and found the file, so the old "no records" warning must not appear.
-            body!.Entries.Should().NotContain(e => e.Message.Contains("No files are recorded"));
+            var destPath = Path.Combine(targetDir, "Matched Site", "video.mkv");
+
+            body!.Log.FilesMovedAtUtc.Should().NotBeNull();
+            body.Entries.Should().Contain(e => e.Message.Contains("Moved:"));
+            body.Entries.Should().NotContain(e => e.Message.Contains("No files are recorded"));
+            File.Exists(destPath).Should().BeTrue();
+            File.Exists(Path.Combine(sourceDir, "video.mkv")).Should().BeFalse();
+
+            using var verifyScope = _factory.Services.CreateScope();
+            var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var movedLog = await verifyDb.DownloadLogs
+                .Include(l => l.Files)
+                .SingleAsync(l => l.Id == id);
+
+            movedLog.FilesMovedAtUtc.Should().NotBeNull();
+            movedLog.StoragePath.Should().Be(Path.Combine(targetDir, "Matched Site"));
+            movedLog.Files.Should().ContainSingle(f =>
+                f.OriginalFileName == "video.mkv" &&
+                f.FileName == "video.mkv" &&
+                f.FileSize > 0);
+        }
+        finally
+        {
+            if (Directory.Exists(sourceDir)) Directory.Delete(sourceDir, recursive: true);
+            if (Directory.Exists(targetDir)) Directory.Delete(targetDir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Move_FileStoragePathButNoDbRecords_SyncsParentFolderBeforeMoving()
+    {
+        var sourceDir = Path.Combine(Path.GetTempPath(), $"porganizer-move-test-src-{Guid.NewGuid():N}");
+        var targetDir = Path.Combine(Path.GetTempPath(), $"porganizer-move-test-dst-{Guid.NewGuid():N}");
+        var sourceFile = Path.Combine(sourceDir, "video.mkv");
+        Directory.CreateDirectory(sourceDir);
+        Directory.CreateDirectory(targetDir);
+
+        try
+        {
+            File.WriteAllText(sourceFile, "fake");
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var settings = await db.AppSettings.OrderBy(s => s.Id).FirstAsync();
+            settings.OrganizeCompletedBySite       = true;
+            settings.CompletedDownloadsTargetFolder = targetDir;
+            await db.SaveChangesAsync();
+
+            var id = await SeedLogAsync(
+                DownloadStatus.Completed,
+                filesMovedAtUtc: null,
+                storagePath: sourceFile,
+                withPrdbMatch: true);
+
+            var response = await _client.PostAsync($"/api/download-logs/{id}/move", null);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var body = await response.Content.ReadFromJsonAsync<MoveBody>();
+            body.Should().NotBeNull();
+
+            var destPath = Path.Combine(targetDir, "Matched Site", "video.mkv");
+
+            body!.Log.FilesMovedAtUtc.Should().NotBeNull();
+            body.Entries.Should().Contain(e => e.Message.Contains("Moved:"));
+            body.Entries.Should().NotContain(e => e.Message.Contains("No files are recorded"));
+            File.Exists(destPath).Should().BeTrue();
+            File.Exists(sourceFile).Should().BeFalse();
+
+            using var verifyScope = _factory.Services.CreateScope();
+            var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var movedLog = await verifyDb.DownloadLogs
+                .Include(l => l.Files)
+                .SingleAsync(l => l.Id == id);
+
+            movedLog.StoragePath.Should().Be(Path.Combine(targetDir, "Matched Site"));
+            movedLog.FilesMovedAtUtc.Should().NotBeNull();
+            movedLog.Files.Should().ContainSingle(f =>
+                f.OriginalFileName == "video.mkv" &&
+                f.FileName == "video.mkv");
         }
         finally
         {
@@ -118,7 +202,11 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private async Task<Guid> SeedLogAsync(DownloadStatus status, DateTime? filesMovedAtUtc, string? storagePath = null)
+    private async Task<Guid> SeedLogAsync(
+        DownloadStatus status,
+        DateTime? filesMovedAtUtc,
+        string? storagePath = null,
+        bool withPrdbMatch = false)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -177,6 +265,59 @@ public sealed class DownloadLogsMoveTests : IAsyncLifetime
         db.IndexerRows.Add(row);
         db.DownloadClients.Add(downloadClient);
         db.DownloadLogs.Add(log);
+
+        if (withPrdbMatch)
+        {
+            var site = new PrdbSite
+            {
+                Id          = Guid.NewGuid(),
+                Title       = "Matched Site",
+                Url         = "https://site.test",
+                SyncedAtUtc = DateTime.UtcNow,
+            };
+
+            var video = new PrdbVideo
+            {
+                Id               = Guid.NewGuid(),
+                Title            = "Matched Video",
+                SiteId           = site.Id,
+                Site             = site,
+                PrdbCreatedAtUtc = DateTime.UtcNow,
+                PrdbUpdatedAtUtc = DateTime.UtcNow,
+                SyncedAtUtc      = DateTime.UtcNow,
+            };
+
+            var prename = new PrdbPreDbEntry
+            {
+                Id           = Guid.NewGuid(),
+                Title        = "Test.Release.1080p",
+                CreatedAtUtc = DateTime.UtcNow,
+                PrdbVideoId  = video.Id,
+                Video        = video,
+                PrdbSiteId   = site.Id,
+                Site         = site,
+                VideoTitle   = video.Title,
+                SiteTitle    = site.Title,
+                SyncedAtUtc  = DateTime.UtcNow,
+            };
+
+            db.PrdbSites.Add(site);
+            db.PrdbVideos.Add(video);
+            db.PrdbPreDbEntries.Add(prename);
+            db.IndexerRowMatches.Add(new IndexerRowMatch
+            {
+                Id                  = Guid.NewGuid(),
+                IndexerRowId        = row.Id,
+                IndexerRow          = row,
+                PrdbVideoId         = video.Id,
+                Video               = video,
+                MatchedPreDbEntryId = prename.Id,
+                MatchedPreDbEntry   = prename,
+                MatchedTitle        = prename.Title,
+                MatchedAtUtc        = DateTime.UtcNow,
+            });
+        }
+
         await db.SaveChangesAsync();
 
         return log.Id;

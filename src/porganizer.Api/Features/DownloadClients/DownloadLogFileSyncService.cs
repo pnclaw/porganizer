@@ -66,13 +66,36 @@ public class DownloadLogFileSyncService(AppDbContext db, ILogger<DownloadLogFile
             }
         }
 
-        if (!Directory.Exists(localPath))
+        string scanRoot;
+        string[] allPaths;
+        var storagePathChanged = false;
+
+        if (Directory.Exists(localPath))
+        {
+            scanRoot = localPath;
+            allPaths = Directory.GetFiles(localPath, "*", SearchOption.AllDirectories);
+        }
+        else if (File.Exists(localPath))
+        {
+            var localParent = Path.GetDirectoryName(localPath);
+            var logParent = GetParentPath(log.StoragePath);
+
+            if (string.IsNullOrWhiteSpace(localParent) || string.IsNullOrWhiteSpace(logParent))
+                return DownloadLogFileSyncResult.NoDirectory();
+
+            scanRoot = localParent;
+            allPaths = [localPath];
+            if (!string.Equals(log.StoragePath, logParent, StringComparison.Ordinal))
+            {
+                log.StoragePath = logParent;
+                storagePathChanged = true;
+            }
+        }
+        else
         {
             logger.LogDebug("DownloadLogFileSyncService: directory not found at '{Path}' for log {LogId}", localPath, log.Id);
             return DownloadLogFileSyncResult.NoDirectory();
         }
-
-        var allPaths = Directory.GetFiles(localPath, "*", SearchOption.AllDirectories);
 
         if (deleteNonVideoFiles)
         {
@@ -117,7 +140,7 @@ public class DownloadLogFileSyncService(AppDbContext db, ILogger<DownloadLogFile
         foreach (var fullPath in fullPaths)
         {
             var fileInfo = new FileInfo(fullPath);
-            var relativePath = Path.GetRelativePath(localPath, fullPath);
+            var relativePath = Path.GetRelativePath(scanRoot, fullPath);
             logger.LogInformation(
                 "DownloadLogFileSyncService: scanned file log={LogId} relativePath='{RelativePath}' " +
                 "hasLeadingQuote={HasLeadingQuote} hasTrailingQuote={HasTrailingQuote}",
@@ -135,7 +158,7 @@ public class DownloadLogFileSyncService(AppDbContext db, ILogger<DownloadLogFile
         var now = DateTime.UtcNow;
         var addedOrUpdated = new List<Guid>();
         var removedSnapshots = new List<RemovedDownloadLogFileSnapshot>();
-        var hasChanges = false;
+        var hasChanges = storagePathChanged;
 
         foreach (var scanned in scannedByName.Values)
         {
@@ -196,6 +219,17 @@ public class DownloadLogFileSyncService(AppDbContext db, ILogger<DownloadLogFile
         {
             HasChanges = hasChanges
         };
+    }
+
+    private static string? GetParentPath(string path)
+    {
+        var trimmed = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, '/', '\\');
+        var index = trimmed.LastIndexOfAny(['/', '\\']);
+
+        if (index > 0)
+            return trimmed[..index];
+
+        return Path.GetDirectoryName(trimmed);
     }
 }
 
