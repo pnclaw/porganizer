@@ -108,6 +108,7 @@ public class DownloadClientsController(AppDbContext db) : ControllerBase
     [EndpointSummary("Send NZB to download client")]
     [EndpointDescription("Sends an NZB URL to the specified download client for download.")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Send(
         Guid id,
@@ -116,6 +117,7 @@ public class DownloadClientsController(AppDbContext db) : ControllerBase
     {
         var client = await db.DownloadClients.FindAsync(id);
         if (client is null) return NotFound();
+        if (!client.IsEnabled) return BadRequest("Download client is disabled.");
 
         var sw = Stopwatch.StartNew();
         var (success, message, clientItemId) = await sender.SendAsync(client, request.NzbUrl, request.Name);

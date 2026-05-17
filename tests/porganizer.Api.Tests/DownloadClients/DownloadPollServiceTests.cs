@@ -73,6 +73,26 @@ public sealed class DownloadPollServiceTests : IDisposable
         saved.Status.Should().Be(DownloadStatus.Downloading);
     }
 
+    [Fact]
+    public async Task PollAsync_WhenDownloadClientDisabled_DoesNotPollOrUpdateLog()
+    {
+        var (_, log) = await SeedSabnzbdDownloadAsync(
+            "nzo-disabled",
+            DownloadStatus.Downloading,
+            missedPollCount: 2,
+            isEnabled: false);
+
+        var service = BuildService(sabnzbdHandler: _ =>
+            throw new InvalidOperationException("Disabled download clients should not be polled."));
+
+        await service.PollAsync(CancellationToken.None);
+
+        var saved = await _db.DownloadLogs.SingleAsync(l => l.Id == log.Id);
+        saved.MissedPollCount.Should().Be(2);
+        saved.Status.Should().Be(DownloadStatus.Downloading);
+        saved.LastPolledAt.Should().BeNull();
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // SABnzbd — item completed while porganizer was offline
     // ──────────────────────────────────────────────────────────────────────────
@@ -413,7 +433,8 @@ public sealed class DownloadPollServiceTests : IDisposable
         string clientItemId,
         DownloadStatus status,
         int missedPollCount,
-        AppDbContext? db = null)
+        AppDbContext? db = null,
+        bool isEnabled = true)
     {
         var targetDb = db ?? _db;
         var indexer = new Indexer
@@ -448,7 +469,7 @@ public sealed class DownloadPollServiceTests : IDisposable
             Host       = "sabnzbd.test",
             Port       = 8080,
             ApiKey     = "sabnzbd-key",
-            IsEnabled  = true,
+            IsEnabled  = isEnabled,
             CreatedAt  = DateTime.UtcNow,
             UpdatedAt  = DateTime.UtcNow,
         };
