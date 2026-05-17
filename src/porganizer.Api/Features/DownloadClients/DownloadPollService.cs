@@ -28,7 +28,8 @@ public class DownloadPollService(
             .Where(l =>
                 l.Status != DownloadStatus.Completed &&
                 l.Status != DownloadStatus.Failed &&
-                l.ClientItemId != null)
+                l.ClientItemId != null &&
+                l.DownloadClient.IsEnabled)
             .ToListAsync(ct);
 
         if (pendingLogs.Count > 0)

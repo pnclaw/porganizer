@@ -3,6 +3,15 @@
 Entries are grouped by feature branch, newest first.
 See [`docs/changelog/`](docs/changelog/) for archived entries.
 
+## feature/sync-process-review — 2026-05-17
+
+### Done
+- Prevented disabled SABnzbd/NZBGet download clients from being used by backend send and polling flows.
+- Added regression tests covering direct sends to disabled clients and skipped polling for disabled clients.
+
+### Dead Ends
+*(none)*
+
 ## feature/download-polling-large-queue — 2026-05-16
 
 ### Done
